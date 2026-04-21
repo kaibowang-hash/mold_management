@@ -1,0 +1,171 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "format:MALT-{YYYY}-{#####}",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "mold",
+  "linked_asset",
+  "company",
+  "column_break_1",
+  "alteration_type",
+  "alteration_date",
+  "section_break_1",
+  "from_version",
+  "to_version",
+  "column_break_2",
+  "tpr_reference",
+  "mcr_reference",
+  "section_break_2",
+  "reason",
+  "summary",
+  "attachment",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "mold",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Mold",
+   "options": "Mold",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "mold.linked_asset",
+   "fieldname": "linked_asset",
+   "fieldtype": "Link",
+   "label": "Linked Asset",
+   "options": "Asset",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "mold.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "alteration_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Alteration Type",
+   "options": "Major\nMinor",
+   "reqd": 1
+  },
+  {
+   "fieldname": "alteration_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Alteration Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Version"
+  },
+  {
+   "fieldname": "from_version",
+   "fieldtype": "Data",
+   "label": "From Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "to_version",
+   "fieldtype": "Data",
+   "label": "To Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tpr_reference",
+   "fieldtype": "Data",
+   "label": "TPR Reference"
+  },
+  {
+   "fieldname": "mcr_reference",
+   "fieldtype": "Data",
+   "label": "MCR Reference"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Change Details"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason",
+   "reqd": 1
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Text Editor",
+   "label": "Summary"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Mold Alteration",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold Alteration",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Manufacturing Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

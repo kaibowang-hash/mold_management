@@ -1,0 +1,547 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "tab_basic_information",
+  "section_identity",
+  "mold_name",
+  "company",
+  "column_break_identity",
+  "ownership_type",
+  "customer",
+  "section_storage",
+  "default_warehouse",
+  "default_location",
+  "default_storage_bin",
+  "column_break_storage",
+  "available_for_use_date",
+  "remarks",
+  "tab_engineering",
+  "section_specs",
+  "mold_type",
+  "cavity_count",
+  "is_family_mold",
+  "column_break_specs",
+  "asset_value",
+  "standard_cycle_seconds",
+  "machine_tonnage",
+  "design_shot_life",
+  "current_shot_count",
+  "section_dimensions",
+  "length_mm",
+  "width_mm",
+  "height_mm",
+  "weight_kg",
+  "column_break_dimensions",
+  "manufacturer",
+  "supplier_tool_no",
+  "drawing_no",
+  "steel_grade",
+  "tab_output_information",
+  "products_section",
+  "mold_products",
+  "tab_material_information",
+  "materials_section",
+  "default_materials",
+  "tab_lifecycle_information",
+  "section_asset",
+  "linked_asset",
+  "status",
+  "current_version",
+  "column_break_asset",
+  "current_warehouse",
+  "current_location",
+  "current_storage_bin",
+  "current_holder_summary",
+  "current_transaction_type",
+  "current_transaction_ref",
+  "history_section",
+  "last_transfer_on",
+  "last_issue_on",
+  "last_receipt_on",
+  "last_repair_on",
+  "column_break_history",
+  "last_maintenance_on",
+  "last_outsource_on",
+  "last_alteration_on",
+  "tab_barcode_information",
+  "barcode_section",
+  "barcode_tools_html",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "tab_basic_information",
+   "fieldtype": "Tab Break",
+   "label": "Basic Information"
+  },
+  {
+   "fieldname": "section_identity",
+   "fieldtype": "Section Break",
+   "label": "Basic Identity"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "mold_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Mold Name",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "ownership_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Ownership Type",
+   "options": "Company\nCustomer",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.ownership_type==='Customer'",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "section_asset",
+   "fieldtype": "Section Break",
+   "label": "Lifecycle"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "linked_asset",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Linked Asset",
+   "options": "Asset",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Pending Asset Link",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending Asset Link\nActive\nIssued\nUnder Maintenance\nUnder External Maintenance\nOutsourced\nScrapped",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "A0",
+   "fieldname": "current_version",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Current Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_asset",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "current_warehouse",
+   "fieldtype": "Link",
+   "label": "Current Warehouse",
+   "options": "Warehouse",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "current_location",
+   "fieldtype": "Link",
+   "label": "Current Location",
+   "options": "Location",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "current_storage_bin",
+   "fieldtype": "Data",
+   "label": "Current Storage Bin",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "current_holder_summary",
+   "fieldtype": "Small Text",
+   "label": "Current Holder / Destination",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "current_transaction_type",
+   "fieldtype": "Data",
+   "label": "Current Transaction Type",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "current_transaction_ref",
+   "fieldtype": "Dynamic Link",
+   "label": "Current Transaction Ref",
+   "options": "current_transaction_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tab_engineering",
+   "fieldtype": "Tab Break",
+   "label": "Engineering"
+  },
+  {
+   "fieldname": "section_specs",
+   "fieldtype": "Section Break",
+   "label": "Engineering"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "mold_type",
+   "fieldtype": "Select",
+   "label": "Mold Type",
+   "options": "INJ\nHot Runner\nCold Runner\nInsert\n2K / Overmold\nUnscrewing\nStack\nOther"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "cavity_count",
+   "fieldtype": "Int",
+   "label": "Cavity Count"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "description": "Family molds must carry at least two Mold Product rows.",
+   "fieldname": "is_family_mold",
+   "fieldtype": "Check",
+   "label": "Family Mold"
+  },
+  {
+   "fieldname": "column_break_specs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "asset_value",
+   "fieldtype": "Currency",
+   "label": "Asset Value",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "standard_cycle_seconds",
+   "fieldtype": "Float",
+   "label": "Standard Cycle (Seconds)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "machine_tonnage",
+   "fieldtype": "Float",
+   "label": "Machine Tonnage"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "design_shot_life",
+   "fieldtype": "Int",
+   "label": "Design Shot Life"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "current_shot_count",
+   "fieldtype": "Int",
+   "label": "Current Shot Count"
+  },
+  {
+   "fieldname": "section_dimensions",
+   "fieldtype": "Section Break",
+   "label": "Dimensions"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "length_mm",
+   "fieldtype": "Float",
+   "label": "Length (mm)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "width_mm",
+   "fieldtype": "Float",
+   "label": "Width (mm)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "height_mm",
+   "fieldtype": "Float",
+   "label": "Height (mm)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "weight_kg",
+   "fieldtype": "Float",
+   "label": "Weight (kg)"
+  },
+  {
+   "fieldname": "column_break_dimensions",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "manufacturer",
+   "fieldtype": "Data",
+   "label": "Manufacturer"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "supplier_tool_no",
+   "fieldtype": "Data",
+   "label": "Supplier Tool No"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "drawing_no",
+   "fieldtype": "Data",
+   "label": "Drawing No"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "steel_grade",
+   "fieldtype": "Data",
+   "label": "Steel Grade"
+  },
+  {
+   "fieldname": "section_storage",
+   "fieldtype": "Section Break",
+   "label": "Storage"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "default_warehouse",
+   "fieldtype": "Link",
+   "label": "Default Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "default_location",
+   "fieldtype": "Link",
+   "label": "Default Location",
+   "options": "Location"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "default_storage_bin",
+   "fieldtype": "Data",
+   "label": "Default Storage Bin"
+  },
+  {
+   "fieldname": "column_break_storage",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "available_for_use_date",
+   "fieldtype": "Date",
+   "label": "Available for Use Date"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "remarks",
+   "fieldtype": "Text Editor",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "tab_output_information",
+   "fieldtype": "Tab Break",
+   "label": "Output Information"
+  },
+  {
+   "fieldname": "products_section",
+   "fieldtype": "Section Break",
+   "label": "Producible Items"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "mold_products",
+   "fieldtype": "Table",
+   "label": "Mold Products",
+   "options": "Mold Product"
+  },
+  {
+   "fieldname": "tab_material_information",
+   "fieldtype": "Tab Break",
+   "label": "Material Information"
+  },
+  {
+   "fieldname": "materials_section",
+   "fieldtype": "Section Break",
+   "label": "Default Materials"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "default_materials",
+   "fieldtype": "Table",
+   "label": "Default Materials",
+   "options": "Mold Default Material"
+  },
+  {
+   "fieldname": "tab_lifecycle_information",
+   "fieldtype": "Tab Break",
+   "label": "Asset & Lifecycle"
+  },
+  {
+   "fieldname": "history_section",
+   "fieldtype": "Section Break",
+   "label": "Recent Activity"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "last_transfer_on",
+   "fieldtype": "Datetime",
+   "label": "Last Transfer On",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "last_issue_on",
+   "fieldtype": "Datetime",
+   "label": "Last Issue On",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "last_receipt_on",
+   "fieldtype": "Datetime",
+   "label": "Last Receipt On",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "last_repair_on",
+   "fieldtype": "Datetime",
+   "label": "Last Repair On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_history",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "last_maintenance_on",
+   "fieldtype": "Datetime",
+   "label": "Last Maintenance On",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "last_outsource_on",
+   "fieldtype": "Datetime",
+   "label": "Last Outsource On",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "last_alteration_on",
+   "fieldtype": "Datetime",
+   "label": "Last Alteration On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tab_barcode_information",
+   "fieldtype": "Tab Break",
+   "label": "Barcode"
+  },
+  {
+   "fieldname": "barcode_section",
+   "fieldtype": "Section Break",
+   "label": "Barcode Center"
+  },
+  {
+   "fieldname": "barcode_tools_html",
+   "fieldtype": "HTML",
+   "label": "Barcode Tools"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Mold",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold",
+ "naming_rule": "By script",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Manufacturing Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

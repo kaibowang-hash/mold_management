@@ -1,0 +1,13 @@
+include *.md
+include *.txt
+recursive-include mold_management *.css
+recursive-include mold_management *.csv
+recursive-include mold_management *.html
+recursive-include mold_management *.ico
+recursive-include mold_management *.js
+recursive-include mold_management *.json
+recursive-include mold_management *.md
+recursive-include mold_management *.png
+recursive-include mold_management *.py
+recursive-include mold_management *.svg
+recursive-include mold_management *.txt

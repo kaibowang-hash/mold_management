@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "field:storage_code",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "storage_code",
+  "warehouse",
+  "location",
+  "storage_bin",
+  "column_break_1",
+  "storage_status",
+  "current_mold",
+  "linked_asset",
+  "mold_status",
+  "last_activity_on",
+  "notes",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "storage_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Storage Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Location",
+   "options": "Location"
+  },
+  {
+   "fieldname": "storage_bin",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Storage Bin",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Available",
+   "fieldname": "storage_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Storage Status",
+   "options": "Available\nPending Asset Link\nActive\nIssued\nUnder Maintenance\nUnder External Maintenance\nOutsourced\nScrapped",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_mold",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Current Mold",
+   "options": "Mold",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_asset",
+   "fieldtype": "Link",
+   "label": "Linked Asset",
+   "options": "Asset",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mold_status",
+   "fieldtype": "Data",
+   "label": "Mold Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_activity_on",
+   "fieldtype": "Datetime",
+   "label": "Last Activity On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Mold Storage Location",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold Storage Location",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Manufacturing Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "is_submittable": 1,
+ "search_fields": "storage_code,warehouse,location,storage_bin,current_mold",
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

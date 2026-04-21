@@ -1,0 +1,190 @@
+{
+ "actions": [],
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "defaults_section",
+  "mold_asset_item",
+  "customer_mold_asset_item",
+  "default_mold_warehouse",
+  "default_mold_storage_bin",
+  "column_break_1",
+  "default_mold_location",
+  "default_maintenance_team",
+  "ownership_section",
+  "own_asset_category",
+  "customer_asset_category",
+  "printing_section",
+  "transfer_print_format",
+  "issue_print_format",
+  "receipt_print_format",
+  "repair_print_format",
+  "column_break_2",
+  "maintenance_print_format",
+  "outsource_print_format",
+  "scrap_print_format",
+  "alteration_print_format",
+  "governance_section",
+  "minor_change_roles"
+ ],
+ "fields": [
+  {
+   "fieldname": "defaults_section",
+   "fieldtype": "Section Break",
+   "label": "Defaults"
+  },
+  {
+   "fieldname": "mold_asset_item",
+   "fieldtype": "Link",
+   "label": "Own Mold Asset Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "customer_mold_asset_item",
+   "fieldtype": "Link",
+   "label": "Customer Mold Asset Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "default_mold_warehouse",
+   "fieldtype": "Link",
+   "label": "Default Mold Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "default_mold_storage_bin",
+   "fieldtype": "Data",
+   "label": "Default Mold Storage Bin"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default_mold_location",
+   "fieldtype": "Link",
+   "label": "Default Mold Location",
+   "options": "Location"
+  },
+  {
+   "fieldname": "default_maintenance_team",
+   "fieldtype": "Link",
+   "label": "Default Maintenance Team",
+   "options": "Asset Maintenance Team"
+  },
+  {
+   "fieldname": "ownership_section",
+   "fieldtype": "Section Break",
+   "label": "Ownership Mapping"
+  },
+  {
+   "fieldname": "own_asset_category",
+   "fieldtype": "Link",
+   "label": "Own Mold Asset Category",
+   "options": "Asset Category"
+  },
+  {
+   "fieldname": "customer_asset_category",
+   "fieldtype": "Link",
+   "label": "Customer Mold Asset Category",
+   "options": "Asset Category"
+  },
+  {
+   "fieldname": "printing_section",
+   "fieldtype": "Section Break",
+   "label": "Printing"
+  },
+  {
+   "fieldname": "transfer_print_format",
+   "fieldtype": "Link",
+   "label": "Transfer Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "issue_print_format",
+   "fieldtype": "Link",
+   "label": "Issue Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "receipt_print_format",
+   "fieldtype": "Link",
+   "label": "Receipt Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "repair_print_format",
+   "fieldtype": "Link",
+   "label": "Repair Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "maintenance_print_format",
+   "fieldtype": "Link",
+   "label": "Maintenance Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "outsource_print_format",
+   "fieldtype": "Link",
+   "label": "Outsource Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "scrap_print_format",
+   "fieldtype": "Link",
+   "label": "Scrap Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "alteration_print_format",
+   "fieldtype": "Link",
+   "label": "Alteration Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "governance_section",
+   "fieldtype": "Section Break",
+   "label": "Governance"
+  },
+  {
+   "description": "One role per line.",
+   "fieldname": "minor_change_roles",
+   "fieldtype": "Small Text",
+   "label": "Basic Info Edit Roles"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold Management Settings",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
