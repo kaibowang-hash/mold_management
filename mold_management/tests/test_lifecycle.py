@@ -1,6 +1,8 @@
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from mold_management.services.lifecycle import sanitize_lifecycle_values
+from mold_management.services.lifecycle import _get_current_version, sanitize_lifecycle_values
 
 
 class TestLifecycle(unittest.TestCase):
@@ -20,3 +22,15 @@ class TestLifecycle(unittest.TestCase):
 		self.assertIsNone(cleaned["last_issue_on"])
 		self.assertIsNone(cleaned["last_alteration_on"])
 		self.assertEqual(cleaned["current_transaction_type"], "")
+
+	@patch("mold_management.services.lifecycle.get_latest_submitted_version", return_value="B0")
+	def test_current_version_prefers_latest_submitted_alteration(self, _mocked_latest_version):
+		mold = SimpleNamespace(name="MOLD-001", current_version="A3")
+
+		self.assertEqual(_get_current_version(mold), "B0")
+
+	@patch("mold_management.services.lifecycle.get_latest_submitted_version", return_value="A0")
+	def test_current_version_preserves_higher_master_value_for_legacy_data(self, _mocked_latest_version):
+		mold = SimpleNamespace(name="MOLD-002", current_version="C2")
+
+		self.assertEqual(_get_current_version(mold), "C2")

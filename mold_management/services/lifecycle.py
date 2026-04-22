@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 import frappe
 from frappe import _
 
@@ -15,7 +17,7 @@ from mold_management.constants import (
 	OUTSOURCE_TYPE_EXTERNAL_MAINTENANCE,
 )
 from mold_management.services.storage import sync_mold_storage_location
-from mold_management.services.versioning import version_sort_key
+from mold_management.services.versioning import normalize_version, version_sort_key
 
 
 def handle_asset_change(doc, method=None):
@@ -57,6 +59,7 @@ def sync_mold_lifecycle(mold_name: str):
 	values = {
 		"status": _get_mold_status(mold_name, asset),
 		"linked_asset": asset.name if asset else None,
+		"current_version": _get_current_version(mold),
 		"current_location": asset.location if asset else None,
 		"current_warehouse": _get_current_warehouse(asset.name if asset else None) if asset else None,
 		"current_storage_bin": _get_current_storage_bin(asset.name if asset else None) if asset else None,
@@ -156,7 +159,7 @@ def _has_open_maintenance(asset_name: str) -> bool:
 
 
 def _get_current_warehouse(asset_name: str | None) -> str:
-	if not asset_name:
+	if not asset_name or not _has_asset_movement_item_column("custom_mold_management_target_warehouse"):
 		return ""
 
 	value = frappe.db.sql(
@@ -176,7 +179,7 @@ def _get_current_warehouse(asset_name: str | None) -> str:
 
 
 def _get_current_storage_bin(asset_name: str | None) -> str:
-	if not asset_name:
+	if not asset_name or not _has_asset_movement_item_column("custom_mold_management_target_storage_bin"):
 		return ""
 
 	value = frappe.db.sql(
@@ -366,6 +369,12 @@ def get_latest_submitted_version(mold_name: str) -> str:
 	return max((row.to_version for row in rows), key=version_sort_key)
 
 
+def _get_current_version(mold) -> str:
+	current_version = normalize_version(getattr(mold, "current_version", None))
+	latest_version = normalize_version(get_latest_submitted_version(mold.name))
+	return max((current_version, latest_version), key=version_sort_key)
+
+
 def _get_open_outsource_doc(mold_name: str):
 	name = frappe.db.get_value(
 		"Mold Outsource",
@@ -506,3 +515,8 @@ def sanitize_lifecycle_values(values: dict) -> dict:
 			continue
 		cleaned[key] = value
 	return cleaned
+
+
+@lru_cache(maxsize=8)
+def _has_asset_movement_item_column(fieldname: str) -> bool:
+	return frappe.db.has_column("Asset Movement Item", fieldname)

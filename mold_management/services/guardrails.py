@@ -203,10 +203,12 @@ def create_receipt_to_default_for_mold(mold_name: str) -> dict:
 					"source_location": asset.location or mold.current_location,
 					"target_location": mold.default_location or mold.current_location,
 					"from_employee": asset.custodian,
-					"custom_mold_management_source_warehouse": mold.current_warehouse or mold.default_warehouse,
-					"custom_mold_management_source_storage_bin": mold.current_storage_bin or mold.default_storage_bin,
-					"custom_mold_management_target_warehouse": mold.default_warehouse or mold.current_warehouse,
-					"custom_mold_management_target_storage_bin": mold.default_storage_bin or mold.current_storage_bin,
+					**_get_asset_movement_extension_fields(
+						source_warehouse=mold.current_warehouse or mold.default_warehouse,
+						source_storage_bin=mold.current_storage_bin or mold.default_storage_bin,
+						target_warehouse=mold.default_warehouse or mold.current_warehouse,
+						target_storage_bin=mold.default_storage_bin or mold.current_storage_bin,
+					),
 				}
 			],
 		}
@@ -262,6 +264,25 @@ def _get_linked_asset(mold):
 	if not mold.linked_asset:
 		frappe.throw(_("Create or link an Asset first."))
 	return frappe.get_doc("Asset", mold.linked_asset)
+
+
+def _get_asset_movement_extension_fields(
+	*,
+	source_warehouse: str | None = None,
+	source_storage_bin: str | None = None,
+	target_warehouse: str | None = None,
+	target_storage_bin: str | None = None,
+) -> dict:
+	values = {}
+	if frappe.db.has_column("Asset Movement Item", "custom_mold_management_source_warehouse"):
+		values["custom_mold_management_source_warehouse"] = source_warehouse
+	if frappe.db.has_column("Asset Movement Item", "custom_mold_management_source_storage_bin"):
+		values["custom_mold_management_source_storage_bin"] = source_storage_bin
+	if frappe.db.has_column("Asset Movement Item", "custom_mold_management_target_warehouse"):
+		values["custom_mold_management_target_warehouse"] = target_warehouse
+	if frappe.db.has_column("Asset Movement Item", "custom_mold_management_target_storage_bin"):
+		values["custom_mold_management_target_storage_bin"] = target_storage_bin
+	return values
 
 
 def _is_issued(mold, asset) -> bool:

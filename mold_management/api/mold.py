@@ -90,12 +90,14 @@ def create_asset_movement_from_mold(mold_name: str, purpose: str, values: str | 
 		"target_location": values.get("target_location"),
 		"from_employee": values.get("from_employee"),
 		"to_employee": values.get("to_employee"),
-		"custom_mold_management_source_warehouse": values.get("source_warehouse") or mold.current_warehouse,
-		"custom_mold_management_source_storage_bin": values.get("source_storage_bin")
-		or mold.current_storage_bin,
-		"custom_mold_management_target_warehouse": values.get("target_warehouse"),
-		"custom_mold_management_target_storage_bin": values.get("target_storage_bin"),
 	}
+	_apply_asset_movement_extension_fields(
+		row,
+		source_warehouse=values.get("source_warehouse") or mold.current_warehouse,
+		source_storage_bin=values.get("source_storage_bin") or mold.current_storage_bin,
+		target_warehouse=values.get("target_warehouse"),
+		target_storage_bin=values.get("target_storage_bin"),
+	)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Asset Movement",
@@ -157,7 +159,11 @@ def create_asset_maintenance_from_mold(mold_name: str, values: str | dict | None
 		"description": values.get("description"),
 	}
 
-	maintenance_name = frappe.db.get_value("Asset Maintenance", {"asset_name": asset.name})
+	maintenance_name = frappe.db.get_value(
+		"Asset Maintenance",
+		{"asset_name": asset.name},
+		order_by="modified desc",
+	)
 	if maintenance_name:
 		maintenance_doc = frappe.get_doc("Asset Maintenance", maintenance_name)
 		maintenance_doc.append("asset_maintenance_tasks", task_data)
@@ -216,16 +222,14 @@ def create_alteration_from_mold(mold_name: str, alteration_type: str) -> dict:
 	if not mold.linked_asset:
 		frappe.throw(_("Create or link an Asset first."))
 
-	doc = frappe.get_doc(
-		{
-			"doctype": "Mold Alteration",
+	return {
+		"doctype": "Mold Alteration",
+		"defaults": {
 			"mold": mold_name,
 			"alteration_type": alteration_type,
 			"alteration_date": today(),
-		}
-	)
-	doc.insert(ignore_permissions=True)
-	return {"doctype": doc.doctype, "name": doc.name}
+		},
+	}
 
 
 @frappe.whitelist()
@@ -452,6 +456,24 @@ def _is_mold_related_asset_movement(doc) -> bool:
 	if doc.reference_doctype == "Mold" and doc.reference_name:
 		return True
 	return any(_is_mold_related_asset(row.asset) for row in doc.get("assets", []))
+
+
+def _apply_asset_movement_extension_fields(
+	row: dict,
+	*,
+	source_warehouse: str | None = None,
+	source_storage_bin: str | None = None,
+	target_warehouse: str | None = None,
+	target_storage_bin: str | None = None,
+):
+	if frappe.db.has_column("Asset Movement Item", "custom_mold_management_source_warehouse"):
+		row["custom_mold_management_source_warehouse"] = source_warehouse
+	if frappe.db.has_column("Asset Movement Item", "custom_mold_management_source_storage_bin"):
+		row["custom_mold_management_source_storage_bin"] = source_storage_bin
+	if frappe.db.has_column("Asset Movement Item", "custom_mold_management_target_warehouse"):
+		row["custom_mold_management_target_warehouse"] = target_warehouse
+	if frappe.db.has_column("Asset Movement Item", "custom_mold_management_target_storage_bin"):
+		row["custom_mold_management_target_storage_bin"] = target_storage_bin
 
 
 def _is_mold_related_maintenance_log(doc) -> bool:

@@ -866,13 +866,10 @@ function open_spare_part_usage_dialog(frm) {
 }
 
 function create_alteration(frm, alterationType) {
-	mold_management.ui.server_action({
-		method: "mold_management.api.mold.create_alteration_from_mold",
-		args: { mold_name: frm.doc.name, alteration_type: alterationType },
-		freeze_message: __("Generating {0} Alteration...", [alterationType]),
-		callback: function (r) {
-			if (r.message) mold_management.ui.route_to_doc(r.message);
-		},
+	frappe.new_doc("Mold Alteration", {
+		mold: frm.doc.name,
+		alteration_type: alterationType,
+		alteration_date: frappe.datetime.get_today(),
 	});
 }
 
