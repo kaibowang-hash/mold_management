@@ -14,7 +14,7 @@ def sync_mold_storage_location(mold_name: str, lifecycle_values: dict | None = N
 
 	mold = frappe.get_doc("Mold", mold_name)
 	values = _build_values_payload(mold, lifecycle_values or {})
-	target_name = _find_target_storage_location(values)
+	target_name = _ensure_target_storage_location(values)
 	current_names = frappe.get_all(
 		"Mold Storage Location",
 		filters={"current_mold": mold.name, "docstatus": 1},
@@ -74,6 +74,32 @@ def _find_target_storage_location(values: dict) -> str | None:
 		},
 	)
 	return row[0][0] if row else None
+
+
+def _ensure_target_storage_location(values: dict) -> str | None:
+	target_name = _find_target_storage_location(values)
+	if target_name:
+		return target_name
+
+	warehouse = (values.get("current_warehouse") or "").strip()
+	location = (values.get("current_location") or "").strip()
+	storage_bin = (values.get("current_storage_bin") or "").strip()
+	if not warehouse or not storage_bin:
+		return None
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Mold Storage Location",
+			"storage_code": _build_storage_code(warehouse, location, storage_bin),
+			"warehouse": warehouse,
+			"location": location or None,
+			"storage_bin": storage_bin,
+			"notes": "Auto-created by Mold Management lifecycle sync.",
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	doc.submit()
+	return doc.name
 
 
 def _occupy_storage_location(location_name: str, mold, values: dict):
@@ -231,3 +257,8 @@ def _get_posting_time(values: dict):
 	if timestamps:
 		return max(timestamps, key=get_datetime)
 	return now_datetime()
+
+
+def _build_storage_code(warehouse: str, location: str, storage_bin: str) -> str:
+	location_value = location or "NO-LOCATION"
+	return f"{warehouse} :: {location_value} :: {storage_bin}"

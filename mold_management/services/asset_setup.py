@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from types import MethodType
+
 import frappe
 from frappe import _
-from frappe.utils import today
+from frappe.utils import flt, getdate, today
 
 from mold_management.constants import (
 	ASSET_SETUP_MODE_CREATE,
@@ -10,6 +12,7 @@ from mold_management.constants import (
 	MOLD_STATUS_ACTIVE,
 	MOLD_STATUS_PENDING_ASSET_LINK,
 )
+from mold_management.services.customizations import ensure_standard_customizations
 
 
 def apply_mold_defaults(mold, settings=None):
@@ -87,6 +90,7 @@ def validate_asset_matches_mold(mold, asset, settings=None):
 
 
 def setup_asset_for_mold(mold_name: str, setup_mode: str, asset_name: str | None = None) -> dict:
+	ensure_standard_customizations()
 	mold = frappe.get_doc("Mold", mold_name)
 	settings = frappe.get_single("Mold Management Settings")
 	apply_mold_defaults(mold, settings)
@@ -105,8 +109,12 @@ def _create_asset_for_mold(mold, settings) -> dict:
 
 	required_item = get_required_asset_item(mold, settings)
 	_require_value(required_item, _("Asset Item must be configured in Mold Management Settings for this ownership type."))
+	purchase_amount = _get_purchase_amount(mold)
 	if mold.ownership_type == "Company":
-		_require_value(mold.asset_value, _("Asset Value must be set on the Mold before creating an Asset."))
+		_require_value(
+			purchase_amount,
+			_("Asset Value must be set on the Mold before creating an Asset."),
+		)
 
 	asset_category = get_required_asset_category(mold, settings)
 	_require_value(asset_category, _("Asset Category is missing in Mold Management Settings."))
@@ -124,7 +132,9 @@ def _create_asset_for_mold(mold, settings) -> dict:
 			"location": location,
 			"purchase_date": mold.available_for_use_date or today(),
 			"available_for_use_date": mold.available_for_use_date or today(),
-			"gross_purchase_amount": mold.asset_value if mold.ownership_type == "Company" else 0,
+			"gross_purchase_amount": purchase_amount,
+			"net_purchase_amount": purchase_amount,
+			"purchase_amount": purchase_amount,
 			"is_existing_asset": 1,
 			"calculate_depreciation": 0,
 			"asset_owner": mold.ownership_type,
@@ -133,6 +143,8 @@ def _create_asset_for_mold(mold, settings) -> dict:
 			"custom_mold_management_mold": mold.name,
 		}
 	)
+	if _allows_zero_value_asset(mold, settings):
+		_allow_zero_value_asset_validation(asset)
 	asset.insert(ignore_permissions=True)
 	asset.submit()
 
@@ -163,3 +175,69 @@ def _link_asset_for_mold(mold, asset_name: str | None, settings) -> dict:
 def _require_value(value, message: str):
 	if not value:
 		frappe.throw(message)
+
+
+def _get_purchase_amount(mold) -> float:
+	return flt(mold.asset_value) if mold.ownership_type == "Company" else 0.0
+
+
+def _allows_zero_value_asset(mold, settings) -> bool:
+	return (
+		mold.ownership_type == "Customer"
+		and get_required_asset_item(mold, settings)
+		and get_required_asset_item(mold, settings) == settings.customer_mold_asset_item
+	)
+
+
+def _allow_zero_value_asset_validation(asset):
+	original_validate_asset_values = asset.validate_asset_values
+
+	def _validate_asset_values(self):
+		if flt(self.net_purchase_amount):
+			return original_validate_asset_values()
+
+		if not self.asset_category:
+			self.asset_category = frappe.get_cached_value("Item", self.item_code, "asset_category")
+
+		if _is_cwip_accounting_enabled(self.asset_category):
+			if (
+				self.asset_type not in ("Existing Asset", "Composite Asset")
+				and not self.purchase_receipt
+				and not self.purchase_invoice
+			):
+				frappe.throw(
+					_("Please create purchase receipt or purchase invoice for the item {0}").format(
+						self.item_code
+					)
+				)
+
+			if (
+				not self.purchase_receipt
+				and self.purchase_invoice
+				and not frappe.db.get_value("Purchase Invoice", self.purchase_invoice, "update_stock")
+			):
+				frappe.throw(
+					_("Update stock must be enabled for the purchase invoice {0}").format(
+						self.purchase_invoice
+					)
+				)
+
+		if not self.calculate_depreciation:
+			return
+
+		if not self.finance_books:
+			frappe.throw(_("Enter depreciation details"))
+		if self.is_fully_depreciated:
+			frappe.throw(_("Depreciation cannot be calculated for fully depreciated assets"))
+		if self.asset_type == "Existing Asset":
+			return
+		if self.available_for_use_date and getdate(self.available_for_use_date) < getdate(self.purchase_date):
+			frappe.throw(_("Available-for-use Date should be after purchase date"))
+
+	asset.validate_asset_values = MethodType(_validate_asset_values, asset)
+
+
+def _is_cwip_accounting_enabled(asset_category: str | None) -> bool:
+	from erpnext.assets.doctype.asset.asset import is_cwip_accounting_enabled
+
+	return is_cwip_accounting_enabled(asset_category)

@@ -26,8 +26,7 @@ class Mold(Document):
 		self._validate_asset_link()
 
 	def on_submit(self):
-		if self.linked_asset:
-			sync_mold_lifecycle(self.name)
+		sync_mold_lifecycle(self.name)
 
 	def on_trash(self):
 		if self.linked_asset:
