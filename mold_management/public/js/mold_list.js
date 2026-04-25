@@ -32,7 +32,7 @@ frappe.listview_settings["Mold"] = frappe.listview_settings["Mold"] || {};
 		if (listview.__mm_label_sheet_btn_added) return;
 		listview.__mm_label_sheet_btn_added = true;
 
-		listview.page.add_inner_button(__("扫码打开模具"), function () {
+		listview.page.add_inner_button(__("Scan Mold Barcode"), function () {
 			mold_management.ui.open_mold_barcode_prompt({
 				action_label: __("Open Mold"),
 				on_resolved(mold) {
@@ -41,7 +41,7 @@ frappe.listview_settings["Mold"] = frappe.listview_settings["Mold"] || {};
 			});
 		});
 
-		listview.page.add_inner_button(__("批量打印标签(A4 Sheet)"), function () {
+		listview.page.add_inner_button(__("Print A4 Label"), function () {
 			const selected = (listview.get_checked_items() || []).map((row) => row.name);
 			if (!selected.length) {
 				frappe.msgprint(__("Please select at least one Mold."));

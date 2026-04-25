@@ -5,6 +5,7 @@
  "field_order": [
   "item_code",
   "item_name",
+  "item_group",
   "column_break_1",
   "priority",
   "is_default_product",
@@ -30,6 +31,13 @@
    "fieldtype": "Read Only",
    "in_list_view": 1,
    "label": "Item Name"
+  },
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Read Only",
+   "hidden": 1,
+   "label": "Item Group"
   },
   {
    "fieldname": "column_break_1",
