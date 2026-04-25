@@ -16,6 +16,7 @@ from mold_management.constants import (
 
 RESOLUTION_CREATE_RECEIPT = "create_receipt_to_default"
 RESOLUTION_RETURN_OUTSOURCE = "return_open_outsource"
+RESOLUTION_OPEN_RELATED = "open_related"
 
 ACTION_LABELS = {
 	"Transfer": "transfer",
@@ -33,16 +34,13 @@ ACTION_LABELS = {
 
 def get_action_guardrail(mold_name: str, action_name: str) -> dict:
 	mold = frappe.get_doc("Mold", mold_name)
-	asset = frappe.get_doc("Asset", mold.linked_asset) if mold.linked_asset else None
-	open_outsource = _get_open_outsource_doc(mold.name)
-	open_issue = _get_open_issue_context(asset.name) if asset else None
-	open_internal_work = _get_open_internal_work(asset.name) if asset else None
 	action_label = ACTION_LABELS.get(action_name, action_name.lower())
 
 	if action_name == "Create / Link Asset":
 		return _allowed()
 
-	if not mold.linked_asset:
+	linked_asset = _get_linked_asset_doc(mold.linked_asset)
+	if not linked_asset:
 		return _blocked(
 			code="asset_required",
 			title=_("Asset setup is still pending"),
@@ -50,6 +48,24 @@ def get_action_guardrail(mold_name: str, action_name: str) -> dict:
 				"Create or link the mold Asset first. Lifecycle actions stay locked until the asset has been established."
 			),
 		)
+
+	if not _is_submitted_asset(linked_asset):
+		return _blocked(
+			code="asset_submit_required",
+			title=_("Asset draft still needs submission"),
+			message=_(
+				"Asset {0} has been created for Mold {1} but is still a draft. Open and submit it before running lifecycle actions."
+			).format(linked_asset.name, mold.name),
+			reference_doctype="Asset",
+			reference_name=linked_asset.name,
+			resolution_action=RESOLUTION_OPEN_RELATED,
+			resolution_label=_("Open Asset Draft"),
+		)
+
+	asset = linked_asset
+	open_outsource = _get_open_outsource_doc(mold.name)
+	open_issue = _get_open_issue_context(asset.name) if asset else None
+	open_internal_work = _get_open_internal_work(asset.name) if asset else None
 
 	if mold.status == MOLD_STATUS_SCRAPPED:
 		return _blocked(
@@ -134,7 +150,7 @@ def get_action_guardrail(mold_name: str, action_name: str) -> dict:
 			reference_name=open_internal_work["name"],
 		)
 
-	if mold.status == MOLD_STATUS_PENDING_ASSET_LINK:
+	if mold.status == MOLD_STATUS_PENDING_ASSET_LINK and not asset:
 		return _blocked(
 			code="pending_asset_link",
 			title=_("Mold is still pending asset linkage"),
@@ -261,9 +277,22 @@ def _blocked(
 
 
 def _get_linked_asset(mold):
-	if not mold.linked_asset:
+	asset = _get_linked_asset_doc(mold.linked_asset)
+	if not asset:
 		frappe.throw(_("Create or link an Asset first."))
-	return frappe.get_doc("Asset", mold.linked_asset)
+	if not _is_submitted_asset(asset):
+		frappe.throw(_("Submit the linked Asset {0} first.").format(asset.name))
+	return asset
+
+
+def _get_linked_asset_doc(asset_name: str | None):
+	if not asset_name:
+		return None
+	return frappe.get_doc("Asset", asset_name)
+
+
+def _is_submitted_asset(asset) -> bool:
+	return hasattr(asset, "docstatus") and int(getattr(asset, "docstatus", 0) or 0) == 1
 
 
 def _get_asset_movement_extension_fields(

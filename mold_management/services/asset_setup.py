@@ -25,7 +25,7 @@ def apply_mold_defaults(mold, settings=None):
 	if not mold.default_storage_bin:
 		mold.default_storage_bin = settings.default_mold_storage_bin
 
-	if not mold.linked_asset:
+	if not _is_submitted_asset(getattr(mold, "linked_asset", None)):
 		mold.status = MOLD_STATUS_PENDING_ASSET_LINK
 	elif not mold.status or mold.status == MOLD_STATUS_PENDING_ASSET_LINK:
 		mold.status = MOLD_STATUS_ACTIVE
@@ -104,8 +104,11 @@ def setup_asset_for_mold(mold_name: str, setup_mode: str, asset_name: str | None
 
 
 def _create_asset_for_mold(mold, settings) -> dict:
-	if mold.linked_asset:
-		return {"doctype": "Asset", "name": mold.linked_asset}
+	existing_asset_name = _get_existing_asset_name_for_mold(mold)
+	if existing_asset_name:
+		if not mold.linked_asset:
+			_set_linked_asset_on_mold(mold.name, existing_asset_name)
+		return {"doctype": "Asset", "name": existing_asset_name}
 
 	required_item = get_required_asset_item(mold, settings)
 	_require_value(required_item, _("Asset Item must be configured in Mold Management Settings for this ownership type."))
@@ -146,19 +149,7 @@ def _create_asset_for_mold(mold, settings) -> dict:
 	if _allows_zero_value_asset(mold, settings):
 		_allow_zero_value_asset_validation(asset)
 	asset.insert(ignore_permissions=True)
-	asset.submit()
-
-	frappe.db.set_value(
-		"Mold",
-		mold.name,
-		{
-			"linked_asset": asset.name,
-			"current_location": asset.location,
-			"current_warehouse": mold.default_warehouse or settings.default_mold_warehouse,
-			"current_storage_bin": mold.default_storage_bin or settings.default_mold_storage_bin,
-		},
-		update_modified=False,
-	)
+	_set_linked_asset_on_mold(mold.name, asset.name)
 	return {"doctype": "Asset", "name": asset.name}
 
 
@@ -168,13 +159,32 @@ def _link_asset_for_mold(mold, asset_name: str | None, settings) -> dict:
 	validate_asset_matches_mold(mold, asset, settings)
 
 	frappe.db.set_value("Asset", asset.name, "custom_mold_management_mold", mold.name, update_modified=False)
-	frappe.db.set_value("Mold", mold.name, "linked_asset", asset.name, update_modified=False)
+	_set_linked_asset_on_mold(mold.name, asset.name)
 	return {"doctype": "Asset", "name": asset.name}
 
 
 def _require_value(value, message: str):
 	if not value:
 		frappe.throw(message)
+
+
+def _get_existing_asset_name_for_mold(mold) -> str | None:
+	return mold.linked_asset or frappe.db.get_value(
+		"Asset",
+		{"custom_mold_management_mold": mold.name},
+		"name",
+		order_by="creation desc",
+	)
+
+
+def _set_linked_asset_on_mold(mold_name: str, asset_name: str):
+	frappe.db.set_value("Mold", mold_name, {"linked_asset": asset_name}, update_modified=False)
+
+
+def _is_submitted_asset(asset_name: str | None) -> bool:
+	if not asset_name:
+		return False
+	return frappe.db.get_value("Asset", asset_name, "docstatus") == 1
 
 
 def _get_purchase_amount(mold) -> float:

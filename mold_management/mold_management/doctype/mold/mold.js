@@ -107,6 +107,9 @@ function run_field_state(frm) {
 		if (!frm.doc.linked_asset) {
 			setState("linked_asset", "Warning", __("Asset has not been created or linked yet"));
 			setState("status", "Warning", __("Status stays pending until an asset is linked"));
+		} else if (frm.doc.status === MM_PENDING_STATUS) {
+			setState("linked_asset", "Warning", __("Linked Asset is still a draft"));
+			setState("status", "Warning", __("Status stays pending until the linked Asset is submitted"));
 		}
 		if (frm.doc.ownership_type === "Customer" && !frm.doc.customer) {
 			setState("customer", "Error", __("Customer is required"));
@@ -333,6 +336,14 @@ function render_form_banner(frm) {
 				<div>${__("Create or link the mold Asset first. Until then the lifecycle actions remain locked.")}</div>
 			`,
 		});
+	} else if (frm.doc.status === MM_PENDING_STATUS) {
+		banners.push({
+			tone: "orange",
+			html: `
+				<div><strong>${__("Asset draft is ready")}</strong></div>
+				<div>${__("Open and submit the linked Asset first. Lifecycle actions stay locked until the asset has been established.")}</div>
+			`,
+		});
 	}
 
 	if (frm.__basic_edit_mode) {
@@ -468,6 +479,14 @@ function add_action_buttons(frm) {
 			open_asset_setup_dialog(frm);
 		});
 		mold_management.ui.highlight_attention_button(assetButton);
+		return;
+	}
+
+	if (frm.doc.status === MM_PENDING_STATUS) {
+		const completeAssetButton = frm.add_custom_button(__("Complete Asset"), function () {
+			frappe.set_route("Form", "Asset", frm.doc.linked_asset);
+		});
+		mold_management.ui.highlight_attention_button(completeAssetButton);
 		return;
 	}
 
@@ -615,6 +634,15 @@ function show_guardrail_dialog(frm, guardrail) {
 }
 
 function run_guardrail_resolution(frm, guardrail) {
+	if (
+		guardrail.resolution_action === "open_related" &&
+		guardrail.reference_doctype &&
+		guardrail.reference_name
+	) {
+		frappe.set_route("Form", guardrail.reference_doctype, guardrail.reference_name);
+		return;
+	}
+
 	if (guardrail.resolution_action === "create_receipt_to_default") {
 		mold_management.ui.server_action({
 			method: "mold_management.api.mold.create_receipt_to_default_from_mold",
