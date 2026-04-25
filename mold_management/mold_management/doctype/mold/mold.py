@@ -15,6 +15,8 @@ from mold_management.services.asset_setup import apply_mold_defaults, validate_a
 from mold_management.services.lifecycle import sync_mold_lifecycle
 from mold_management.services.versioning import normalize_version
 
+APS_ALLOWED_ITEM_GROUPS = ("Plastic Part", "Sub-assemblies")
+
 
 class Mold(Document):
 	def autoname(self):
@@ -26,6 +28,7 @@ class Mold(Document):
 		self._validate_ownership()
 		self._validate_cavity_count()
 		self._validate_product_rules()
+		self._validate_schedulable_products()
 		self._validate_lifecycle_fields()
 		self._validate_asset_link()
 
@@ -71,6 +74,22 @@ class Mold(Document):
 			mold_products=self.get("mold_products") or [],
 		)
 
+	def _validate_schedulable_products(self):
+		rows = self.get("mold_products") or []
+		item_codes = sorted({row.item_code for row in rows if row.item_code})
+		if not item_codes or not frappe.db.exists("DocType", "Item"):
+			return
+
+		item_groups_by_code = {
+			row.name: row.item_group
+			for row in frappe.get_all(
+				"Item",
+				filters={"name": ["in", item_codes]},
+				fields=["name", "item_group"],
+			)
+		}
+		validate_schedulable_product_item_groups(rows, item_groups_by_code)
+
 	def _validate_lifecycle_fields(self):
 		if self.is_new() or self.docstatus != 1:
 			return
@@ -93,6 +112,29 @@ class Mold(Document):
 
 		asset = frappe.get_doc("Asset", self.linked_asset)
 		validate_asset_matches_mold(self, asset)
+
+
+def validate_schedulable_product_item_groups(mold_products, item_groups_by_code: dict[str, str], throw=None):
+	throw = throw or frappe.throw
+	for row in mold_products or []:
+		item_code = _get_row_value(row, "item_code")
+		if not item_code:
+			continue
+
+		item_group = item_groups_by_code.get(item_code)
+		if item_group in APS_ALLOWED_ITEM_GROUPS:
+			continue
+
+		throw(
+			_(
+				"Mold Product row {0} item {1} belongs to item group {2}. Only {3} can be selected for mold outputs."
+			).format(
+				frappe.bold(_get_row_value(row, "idx") or "?"),
+				frappe.bold(item_code),
+				frappe.bold(item_group or _("(blank)")),
+				frappe.bold(", ".join(_(group) for group in APS_ALLOWED_ITEM_GROUPS)),
+			)
+		)
 
 
 @frappe.whitelist()

@@ -5,6 +5,7 @@ from unittest.mock import patch
 from mold_management.mold_management.doctype.mold.mold import (
 	normalize_mold_product_rows,
 	validate_mold_product_configuration,
+	validate_schedulable_product_item_groups,
 )
 
 
@@ -116,3 +117,24 @@ class TestMoldOutputRules(unittest.TestCase):
 			],
 			throw=raise_value_error,
 		)
+
+	def test_schedulable_product_groups_allow_aps_outputs(self):
+		validate_schedulable_product_item_groups(
+			[
+				SimpleNamespace(idx=1, item_code="ITEM-PLASTIC"),
+				SimpleNamespace(idx=2, item_code="ITEM-SUB"),
+			],
+			{
+				"ITEM-PLASTIC": "Plastic Part",
+				"ITEM-SUB": "Sub-assemblies",
+			},
+			throw=raise_value_error,
+		)
+
+	def test_schedulable_product_groups_reject_non_aps_outputs(self):
+		with self.assertRaisesRegex(ValueError, "Only <strong>Plastic Part, Sub-assemblies</strong> can be selected"):
+			validate_schedulable_product_item_groups(
+				[SimpleNamespace(idx=1, item_code="ITEM-RAW")],
+				{"ITEM-RAW": "Raw Material"},
+				throw=raise_value_error,
+			)

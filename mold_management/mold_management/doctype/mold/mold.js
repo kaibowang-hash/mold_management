@@ -3,6 +3,7 @@ frappe.require("/assets/mold_management/js/mold_shared.js");
 const MM_PENDING_STATUS = "Pending Asset Link";
 const MM_VIEW_GROUP = __("View");
 const MM_ACTION_GROUP = __("Actions");
+const MM_APS_ALLOWED_ITEM_GROUPS = ["Plastic Part", "Sub-assemblies"];
 const MM_LIFECYCLE_FIELDS = [
 	"status",
 	"linked_asset",
@@ -28,6 +29,7 @@ frappe.ui.form.on("Mold", {
 		mold_management.ui.ensure_attention_styles();
 		mold_management.ui.ensure_surface_styles();
 		apply_setting_defaults_in_ui(frm);
+		apply_mold_product_query(frm);
 
 		if (frm.is_new() && !frm.doc.status) {
 			frm.set_value("status", MM_PENDING_STATUS);
@@ -120,6 +122,10 @@ function run_field_state(frm) {
 		if (productRuleError) {
 			setState("mold_products", "Error", productRuleError);
 		}
+		const schedulableItemGroupError = get_schedulable_item_group_error(frm);
+		if (schedulableItemGroupError) {
+			setState("mold_products", "Error", schedulableItemGroupError);
+		}
 		if (!frm.doc.default_warehouse) {
 			setState("default_warehouse", "Warning", __("Default mold warehouse is recommended"));
 		}
@@ -160,9 +166,9 @@ function sync_mold_product_values(frm) {
 		}
 	});
 
-	if (!frm.doc.is_family_mold && rows.length === 1 && frappe.utils.flt(frm.doc.cavity_count) > 0) {
-		const outputQty = frappe.utils.flt(frm.doc.cavity_count);
-		if (frappe.utils.flt(rows[0].output_qty) !== outputQty) {
+	if (!frm.doc.is_family_mold && rows.length === 1 && flt(frm.doc.cavity_count) > 0) {
+		const outputQty = flt(frm.doc.cavity_count);
+		if (flt(rows[0].output_qty) !== outputQty) {
 			rows[0].output_qty = outputQty;
 			changed = true;
 		}
@@ -183,9 +189,9 @@ function apply_row_defaults(frm, cdt, cdn) {
 		changed = true;
 	}
 
-	if (!frm.doc.is_family_mold && (frm.doc.mold_products || []).length === 1 && frappe.utils.flt(frm.doc.cavity_count) > 0) {
-		const outputQty = frappe.utils.flt(frm.doc.cavity_count);
-		if (frappe.utils.flt(row.output_qty) !== outputQty) {
+	if (!frm.doc.is_family_mold && (frm.doc.mold_products || []).length === 1 && flt(frm.doc.cavity_count) > 0) {
+		const outputQty = flt(frm.doc.cavity_count);
+		if (flt(row.output_qty) !== outputQty) {
 			row.output_qty = outputQty;
 			changed = true;
 		}
@@ -234,6 +240,17 @@ function apply_setting_defaults_in_ui(frm) {
 	});
 }
 
+function apply_mold_product_query(frm) {
+	frm.set_query("item_code", "mold_products", function () {
+		return {
+			filters: {
+				item_group: ["in", MM_APS_ALLOWED_ITEM_GROUPS],
+				disabled: 0,
+			},
+		};
+	});
+}
+
 function validate_family_mold(frm) {
 	const cavityCountError = get_cavity_count_error(frm);
 	if (cavityCountError) {
@@ -244,13 +261,18 @@ function validate_family_mold(frm) {
 	if (productRuleError) {
 		frappe.throw(productRuleError);
 	}
+
+	const schedulableItemGroupError = get_schedulable_item_group_error(frm);
+	if (schedulableItemGroupError) {
+		frappe.throw(schedulableItemGroupError);
+	}
 }
 
 function get_cavity_count_error(frm) {
 	if (frm.doc.cavity_count == null || frm.doc.cavity_count === "") {
 		return __("Cavity Count is required.");
 	}
-	if (frappe.utils.flt(frm.doc.cavity_count) <= 0) {
+	if (flt(frm.doc.cavity_count) <= 0) {
 		return __("Cavity Count must be greater than zero.");
 	}
 	return "";
@@ -258,7 +280,7 @@ function get_cavity_count_error(frm) {
 
 function get_product_rule_error(frm, use_period_messages = false) {
 	const rows = frm.doc.mold_products || [];
-	const cavityCount = frappe.utils.flt(frm.doc.cavity_count);
+	const cavityCount = flt(frm.doc.cavity_count);
 
 	if (frm.doc.is_family_mold) {
 		if (rows.length < 2) {
@@ -266,13 +288,13 @@ function get_product_rule_error(frm, use_period_messages = false) {
 				? __("Family Mold requires at least two Mold Product rows.")
 				: __("Family Mold requires at least two Mold Product rows");
 		}
-		if (rows.some((row) => frappe.utils.flt(row.output_qty) <= 0)) {
+		if (rows.some((row) => flt(row.output_qty) <= 0)) {
 			return __("Output Qty is required for each Mold Product row when Family Mold is enabled.");
 		}
-		if (rows.some((row) => frappe.utils.flt(row.cavity_output_qty) <= 0)) {
+		if (rows.some((row) => flt(row.cavity_output_qty) <= 0)) {
 			return __("Cavity Output Qty must be greater than zero.");
 		}
-		const totalOutput = rows.reduce((total, row) => total + frappe.utils.flt(row.output_qty), 0);
+		const totalOutput = rows.reduce((total, row) => total + flt(row.output_qty), 0);
 		if (cavityCount > 0 && Math.abs(totalOutput - cavityCount) > 1e-9) {
 			return __("Sum of Output Qty must equal Cavity Count for Family Mold.");
 		}
@@ -282,10 +304,22 @@ function get_product_rule_error(frm, use_period_messages = false) {
 	if (rows.length !== 1) {
 		return __("Non-family molds require exactly one Mold Product row.");
 	}
-	if (rows.some((row) => frappe.utils.flt(row.cavity_output_qty) <= 0)) {
+	if (rows.some((row) => flt(row.cavity_output_qty) <= 0)) {
 		return __("Cavity Output Qty must be greater than zero.");
 	}
 	return "";
+}
+
+function get_schedulable_item_group_error(frm) {
+	const hasNonSchedulableOutput = (frm.doc.mold_products || []).some(
+		(row) =>
+			row.item_code &&
+			row.item_group &&
+			!MM_APS_ALLOWED_ITEM_GROUPS.includes(row.item_group)
+	);
+	return hasNonSchedulableOutput
+		? __("Only Plastic Part and Sub-assemblies can be selected in Mold Product for APS scheduling.")
+		: "";
 }
 
 function render_form_banner(frm) {
@@ -329,6 +363,16 @@ function render_form_banner(frm) {
 		});
 	}
 
+	if (get_schedulable_item_group_error(frm)) {
+		banners.push({
+			tone: "orange",
+			html: `
+				<div><strong>${__("Non-schedulable mold outputs detected")}</strong></div>
+				<div>${__("Mold Product only supports Plastic Part and Sub-assemblies for APS scheduling. Clean these rows before submit.")}</div>
+			`,
+		});
+	}
+
 	if (!banners.length) {
 		frm.layout.show_message();
 		return;
@@ -352,7 +396,7 @@ function setup_basic_edit_mode(frm) {
 
 	if (frm.__basic_edit_mode) {
 		unlock_basic_fields(frm);
-		frm.add_custom_button(__("Cancel Basic Info Edit"), function () {
+		frm.add_custom_button(__("Cancel Edit"), function () {
 			frm.__basic_edit_mode = false;
 			frm.reload_doc();
 		}, MM_ACTION_GROUP);
@@ -360,7 +404,7 @@ function setup_basic_edit_mode(frm) {
 	}
 
 	lock_main_fields(frm);
-	frm.add_custom_button(__("Basic Info Edit"), function () {
+	frm.add_custom_button(__("Edit Basic Info"), function () {
 		frm.__basic_edit_mode = true;
 		frm.refresh();
 	}, MM_ACTION_GROUP);
@@ -420,7 +464,7 @@ function add_action_buttons(frm) {
 	}
 
 	if (!frm.doc.linked_asset) {
-		const assetButton = frm.add_custom_button(__("Create / Link Asset"), function () {
+		const assetButton = frm.add_custom_button(__("Asset Setup"), function () {
 			open_asset_setup_dialog(frm);
 		});
 		mold_management.ui.highlight_attention_button(assetButton);
@@ -560,7 +604,7 @@ function show_guardrail_dialog(frm, guardrail) {
 	dialog.fields_dict.guardrail_html.$wrapper.html(html);
 
 	if (guardrail.reference_doctype && guardrail.reference_name) {
-		dialog.set_secondary_action_label(__("Open Related Document"));
+		dialog.set_secondary_action_label(__("Open Related"));
 		dialog.set_secondary_action(function () {
 			dialog.hide();
 			frappe.set_route("Form", guardrail.reference_doctype, guardrail.reference_name);
@@ -1055,7 +1099,7 @@ function show_logs(frm) {
 				},
 				export_method: "mold_management.api.mold.export_mold_activity_log",
 				export_args: { mold_name: frm.doc.name },
-				secondary_action_label: __("Open Activity Report"),
+				secondary_action_label: __("Activity Report"),
 				secondary_action() {
 					frappe.set_route("query-report", "Mold Activity Log", { mold: frm.doc.name });
 				},
