@@ -54,12 +54,12 @@
    "fieldtype": "Section Break"
   },
   {
-   "default": "1",
    "fieldname": "output_qty",
    "fieldtype": "Float",
    "label": "Output Qty"
   },
   {
+   "default": "1",
    "fieldname": "cavity_output_qty",
    "fieldtype": "Float",
    "label": "Cavity Output Qty"

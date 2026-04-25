@@ -36,13 +36,20 @@ frappe.ui.form.on("Mold", {
 			frm.set_value("current_version", "A0");
 		}
 
+		apply_mold_product_rules(frm);
 		setup_basic_edit_mode(frm);
 		render_form_banner(frm);
 		run_field_state(frm);
 		add_action_buttons(frm);
 		render_barcode_panel(frm);
 	},
+	cavity_count(frm) {
+		apply_mold_product_rules(frm);
+		render_form_banner(frm);
+		run_field_state(frm);
+	},
 	validate(frm) {
+		apply_mold_product_rules(frm);
 		validate_family_mold(frm);
 		run_field_state(frm);
 	},
@@ -51,16 +58,37 @@ frappe.ui.form.on("Mold", {
 		render_barcode_panel(frm);
 	},
 	is_family_mold(frm) {
+		apply_mold_product_rules(frm);
 		render_form_banner(frm);
 		run_field_state(frm);
 	},
-	mold_products_add(frm) {
+	mold_products_add(frm, cdt, cdn) {
+		apply_row_defaults(frm, cdt, cdn);
+		apply_mold_product_rules(frm);
 		render_form_banner(frm);
 		run_field_state(frm);
 	},
 	mold_products_remove(frm) {
+		apply_mold_product_rules(frm);
 		render_form_banner(frm);
 		run_field_state(frm);
+	},
+});
+
+frappe.ui.form.on("Mold Product", {
+	output_qty(frm) {
+		if (!frm.doc.is_family_mold) {
+			apply_mold_product_rules(frm);
+			run_field_state(frm);
+		}
+	},
+	cavity_output_qty(frm, cdt, cdn) {
+		apply_row_defaults(frm, cdt, cdn);
+		run_field_state(frm);
+	},
+	form_render(frm, cdt, cdn) {
+		apply_row_defaults(frm, cdt, cdn);
+		apply_mold_product_grid_rules(frm);
 	},
 });
 
@@ -84,6 +112,14 @@ function run_field_state(frm) {
 		if (frm.doc.is_family_mold && (frm.doc.mold_products || []).length < 2) {
 			setState("mold_name", "Error", __("Family Mold requires at least two Mold Product rows"));
 		}
+		const cavityCountError = get_cavity_count_error(frm);
+		if (cavityCountError) {
+			setState("cavity_count", "Error", cavityCountError);
+		}
+		const productRuleError = get_product_rule_error(frm);
+		if (productRuleError) {
+			setState("mold_products", "Error", productRuleError);
+		}
 		if (!frm.doc.default_warehouse) {
 			setState("default_warehouse", "Warning", __("Default mold warehouse is recommended"));
 		}
@@ -94,6 +130,70 @@ function run_field_state(frm) {
 			setState("asset_value", "Warning", __("Company-owned molds need Asset Value before asset creation"));
 		}
 	});
+}
+
+function apply_mold_product_rules(frm) {
+	apply_mold_product_grid_rules(frm);
+	sync_mold_product_values(frm);
+}
+
+function apply_mold_product_grid_rules(frm) {
+	const grid = frm.fields_dict.mold_products && frm.fields_dict.mold_products.grid;
+	if (!grid) return;
+
+	const allowEdits = frm.doc.docstatus !== 1;
+	const isFamilyMold = !!frm.doc.is_family_mold;
+
+	grid.toggle_reqd("output_qty", isFamilyMold ? 1 : 0);
+	grid.toggle_enable("output_qty", allowEdits && isFamilyMold);
+	grid.toggle_enable("cavity_output_qty", allowEdits);
+}
+
+function sync_mold_product_values(frm) {
+	const rows = frm.doc.mold_products || [];
+	let changed = false;
+
+	rows.forEach((row) => {
+		if (row.cavity_output_qty == null || row.cavity_output_qty === "") {
+			row.cavity_output_qty = 1;
+			changed = true;
+		}
+	});
+
+	if (!frm.doc.is_family_mold && rows.length === 1 && frappe.utils.flt(frm.doc.cavity_count) > 0) {
+		const outputQty = frappe.utils.flt(frm.doc.cavity_count);
+		if (frappe.utils.flt(rows[0].output_qty) !== outputQty) {
+			rows[0].output_qty = outputQty;
+			changed = true;
+		}
+	}
+
+	if (changed) {
+		frm.refresh_field("mold_products");
+	}
+}
+
+function apply_row_defaults(frm, cdt, cdn) {
+	const row = locals[cdt] && locals[cdt][cdn];
+	if (!row) return;
+
+	let changed = false;
+	if (row.cavity_output_qty == null || row.cavity_output_qty === "") {
+		row.cavity_output_qty = 1;
+		changed = true;
+	}
+
+	if (!frm.doc.is_family_mold && (frm.doc.mold_products || []).length === 1 && frappe.utils.flt(frm.doc.cavity_count) > 0) {
+		const outputQty = frappe.utils.flt(frm.doc.cavity_count);
+		if (frappe.utils.flt(row.output_qty) !== outputQty) {
+			row.output_qty = outputQty;
+			changed = true;
+		}
+	}
+
+	if (changed) {
+		frm.refresh_field("mold_products");
+	}
 }
 
 function apply_setting_defaults_in_ui(frm) {
@@ -135,9 +235,57 @@ function apply_setting_defaults_in_ui(frm) {
 }
 
 function validate_family_mold(frm) {
-	if (frm.doc.is_family_mold && (frm.doc.mold_products || []).length < 2) {
-		frappe.throw(__("Family Mold requires at least two Mold Product rows."));
+	const cavityCountError = get_cavity_count_error(frm);
+	if (cavityCountError) {
+		frappe.throw(cavityCountError);
 	}
+
+	const productRuleError = get_product_rule_error(frm, true);
+	if (productRuleError) {
+		frappe.throw(productRuleError);
+	}
+}
+
+function get_cavity_count_error(frm) {
+	if (frm.doc.cavity_count == null || frm.doc.cavity_count === "") {
+		return __("Cavity Count is required.");
+	}
+	if (frappe.utils.flt(frm.doc.cavity_count) <= 0) {
+		return __("Cavity Count must be greater than zero.");
+	}
+	return "";
+}
+
+function get_product_rule_error(frm, use_period_messages = false) {
+	const rows = frm.doc.mold_products || [];
+	const cavityCount = frappe.utils.flt(frm.doc.cavity_count);
+
+	if (frm.doc.is_family_mold) {
+		if (rows.length < 2) {
+			return use_period_messages
+				? __("Family Mold requires at least two Mold Product rows.")
+				: __("Family Mold requires at least two Mold Product rows");
+		}
+		if (rows.some((row) => frappe.utils.flt(row.output_qty) <= 0)) {
+			return __("Output Qty is required for each Mold Product row when Family Mold is enabled.");
+		}
+		if (rows.some((row) => frappe.utils.flt(row.cavity_output_qty) <= 0)) {
+			return __("Cavity Output Qty must be greater than zero.");
+		}
+		const totalOutput = rows.reduce((total, row) => total + frappe.utils.flt(row.output_qty), 0);
+		if (cavityCount > 0 && Math.abs(totalOutput - cavityCount) > 1e-9) {
+			return __("Sum of Output Qty must equal Cavity Count for Family Mold.");
+		}
+		return "";
+	}
+
+	if (rows.length !== 1) {
+		return __("Non-family molds require exactly one Mold Product row.");
+	}
+	if (rows.some((row) => frappe.utils.flt(row.cavity_output_qty) <= 0)) {
+		return __("Cavity Output Qty must be greater than zero.");
+	}
+	return "";
 }
 
 function render_form_banner(frm) {

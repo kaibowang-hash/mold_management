@@ -13,21 +13,21 @@ DASHBOARD_HTML = """
 <div class="mm-workspace-dashboard">
 	<div class="mm-dashboard-head">
 		<div>
-			<h3>Mold Operations Dashboard</h3>
-			<p>Only submitted mold documents are counted here. Draft records stay outside the dashboard and storage board.</p>
+			<h3 class="mm-title"></h3>
+			<p class="mm-subtitle"></p>
 		</div>
-		<button type="button" class="mm-refresh">Refresh</button>
+		<button type="button" class="mm-refresh"></button>
 	</div>
-	<div class="mm-feedback">Loading dashboard...</div>
+	<div class="mm-feedback"></div>
 	<div class="mm-summary-grid"></div>
 	<div class="mm-secondary-grid"></div>
 	<div class="mm-section">
 		<div class="mm-section-head">
 			<div>
-				<h4>Mold Storage Board</h4>
-				<span class="mm-section-note">Submitted storage slots only</span>
+				<h4 class="mm-storage-title"></h4>
+				<span class="mm-section-note"></span>
 			</div>
-			<button type="button" class="mm-open-board">Open Board</button>
+			<button type="button" class="mm-open-board"></button>
 		</div>
 		<div class="mm-storage-board"></div>
 	</div>
@@ -201,6 +201,10 @@ const secondaryGrid = root.querySelector('.mm-secondary-grid');
 const storageBoard = root.querySelector('.mm-storage-board');
 const refreshButton = root.querySelector('.mm-refresh');
 const openBoardButton = root.querySelector('.mm-open-board');
+const titleNode = root.querySelector('.mm-title');
+const subtitleNode = root.querySelector('.mm-subtitle');
+const storageTitleNode = root.querySelector('.mm-storage-title');
+const sectionNoteNode = root.querySelector('.mm-section-note');
 
 const toneMap = {
 	'Pending Asset Link': 'orange',
@@ -217,9 +221,13 @@ function escapeHtml(value) {
 	return frappe.utils.escape_html(value == null ? '' : String(value));
 }
 
+function t(label, args) {
+	return __(label, args);
+}
+
 function badge(label) {
 	const tone = toneMap[label] || 'blue';
-	return `<span class="mm-badge ${tone}">${escapeHtml(label)}</span>`;
+	return `<span class="mm-badge ${tone}">${escapeHtml(t(label))}</span>`;
 }
 
 function docLink(doctype, name, label) {
@@ -239,7 +247,7 @@ function renderCards(cards, target) {
 
 function renderStorageRows(rows) {
 	if (!rows.length) {
-		storageBoard.innerHTML = `<div class="mm-muted">No submitted Mold Storage Location records were found yet. Submit the storage slot masters first and they will appear here automatically.</div>`;
+		storageBoard.innerHTML = `<div class="mm-muted">${escapeHtml(t("No submitted Mold Storage Location records were found yet. Submit the storage slot masters first and they will appear here automatically."))}</div>`;
 		return;
 	}
 
@@ -248,11 +256,11 @@ function renderStorageRows(rows) {
 			<table class="mm-table">
 				<thead>
 					<tr>
-						<th>Storage Slot</th>
-						<th>Current Mold</th>
-						<th>Status</th>
-						<th>Current Holder / Destination</th>
-						<th>Last Activity</th>
+						<th>${escapeHtml(t("Storage Slot"))}</th>
+						<th>${escapeHtml(t("Current Mold"))}</th>
+						<th>${escapeHtml(t("Status"))}</th>
+						<th>${escapeHtml(t("Current Holder / Destination"))}</th>
+						<th>${escapeHtml(t("Last Activity"))}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -263,7 +271,7 @@ function renderStorageRows(rows) {
 		const lastActivity = row.last_activity_on ? frappe.datetime.str_to_user(row.last_activity_on) : '-';
 		const moldCell = row.current_mold
 			? `${docLink('Mold', row.current_mold)}<div class="mm-muted">${escapeHtml(row.mold_name || '')} ${row.current_version ? `| ${escapeHtml(row.current_version)}` : ''}</div>`
-			: '<span class="mm-muted">Available</span>';
+			: `<span class="mm-muted">${escapeHtml(t("Available"))}</span>`;
 
 		html += `
 			<tr class="${rowClass}">
@@ -284,33 +292,39 @@ function renderStorageRows(rows) {
 }
 
 async function loadDashboard() {
-	feedback.textContent = 'Loading dashboard...';
+	feedback.textContent = t('Loading dashboard...');
 	try {
 		const data = await frappe.xcall('mold_management.api.mold.get_workspace_dashboard_data');
 		renderCards([
-			{ label: 'Submitted Molds', value: data.total_molds || 0, note: 'Main mold master records only' },
-			{ label: 'Active', value: data.status_counts?.Active || 0, note: 'Ready for internal use' },
-			{ label: 'Pending Asset', value: data.status_counts?.['Pending Asset Link'] || 0, note: 'Need create / link asset' },
-			{ label: 'Issued', value: data.status_counts?.Issued || 0, note: 'Currently outside standard location' },
-			{ label: 'Outsourced', value: data.status_counts?.Outsourced || 0, note: 'External production / modification / inspection' },
-			{ label: 'Under Maintenance', value: (data.status_counts?.['Under Maintenance'] || 0) + (data.status_counts?.['Under External Maintenance'] || 0), note: 'Internal + external maintenance' }
+			{ label: t('Submitted Molds'), value: data.total_molds || 0, note: t('Main mold master records only') },
+			{ label: t('Active'), value: data.status_counts?.Active || 0, note: t('Ready for internal use') },
+			{ label: t('Pending Asset'), value: data.status_counts?.['Pending Asset Link'] || 0, note: t('Need create / link asset') },
+			{ label: t('Issued'), value: data.status_counts?.Issued || 0, note: t('Currently outside standard location') },
+			{ label: t('Outsourced'), value: data.status_counts?.Outsourced || 0, note: t('External production / modification / inspection') },
+			{ label: t('Under Maintenance'), value: (data.status_counts?.['Under Maintenance'] || 0) + (data.status_counts?.['Under External Maintenance'] || 0), note: t('Internal + external maintenance') }
 		], summaryGrid);
 
 		renderCards([
-			{ label: 'Company-Owned', value: data.ownership_counts?.Company || 0, note: 'Self-owned molds' },
-			{ label: 'Customer-Owned', value: data.ownership_counts?.Customer || 0, note: 'Managed via asset flow without depreciation' },
-			{ label: 'Open Outsource', value: data.queue_counts?.open_outsource || 0, note: 'Submitted and still open' },
-			{ label: 'Storage Slots', value: data.queue_counts?.submitted_storage_slots || 0, note: `${data.queue_counts?.occupied_storage_slots || 0} occupied / ${data.queue_counts?.available_storage_slots || 0} available` }
+			{ label: t('Company-Owned'), value: data.ownership_counts?.Company || 0, note: t('Self-owned molds') },
+			{ label: t('Customer-Owned'), value: data.ownership_counts?.Customer || 0, note: t('Managed via asset flow without depreciation') },
+			{ label: t('Open Outsource'), value: data.queue_counts?.open_outsource || 0, note: t('Submitted and still open') },
+			{ label: t('Storage Slots'), value: data.queue_counts?.submitted_storage_slots || 0, note: t('{0} occupied / {1} available', [data.queue_counts?.occupied_storage_slots || 0, data.queue_counts?.available_storage_slots || 0]) }
 		], secondaryGrid);
 
 		renderStorageRows(data.storage_rows || []);
-		feedback.textContent = 'Dashboard refreshed from submitted records.';
+		feedback.textContent = t('Dashboard refreshed from submitted records.');
 	} catch (error) {
 		console.error(error);
-		feedback.textContent = 'Failed to load mold dashboard.';
+		feedback.textContent = t('Failed to load mold dashboard.');
 	}
 }
 
+titleNode && (titleNode.textContent = t('Mold Operations Dashboard'));
+subtitleNode && (subtitleNode.textContent = t('Only submitted mold documents are counted here. Draft records stay outside the dashboard and storage board.'));
+refreshButton && (refreshButton.textContent = t('Refresh'));
+storageTitleNode && (storageTitleNode.textContent = t('Mold Storage Board'));
+sectionNoteNode && (sectionNoteNode.textContent = t('Submitted storage slots only'));
+openBoardButton && (openBoardButton.textContent = t('Open Board'));
 refreshButton?.addEventListener('click', loadDashboard);
 openBoardButton?.addEventListener('click', () => frappe.set_route('mold-storage-board'));
 loadDashboard();

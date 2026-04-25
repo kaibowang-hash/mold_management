@@ -1,8 +1,10 @@
+from math import isclose
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import getseries
-from frappe.utils import getdate
+from frappe.utils import flt, getdate
 
 from mold_management.constants import (
 	LIFECYCLE_FIELDS,
@@ -20,8 +22,10 @@ class Mold(Document):
 
 	def validate(self):
 		self._set_defaults()
+		self._normalize_product_rows()
 		self._validate_ownership()
-		self._validate_family_mold()
+		self._validate_cavity_count()
+		self._validate_product_rules()
 		self._validate_lifecycle_fields()
 		self._validate_asset_link()
 
@@ -47,9 +51,25 @@ class Mold(Document):
 		if self.ownership_type == "Company":
 			self.customer = ""
 
-	def _validate_family_mold(self):
-		if self.is_family_mold and len(self.get("mold_products") or []) < 2:
-			frappe.throw(_("Family Mold requires at least two Mold Product rows."))
+	def _normalize_product_rows(self):
+		normalize_mold_product_rows(
+			self.get("mold_products") or [],
+			is_family_mold=bool(self.is_family_mold),
+			cavity_count=self.cavity_count,
+		)
+
+	def _validate_cavity_count(self):
+		if self.cavity_count in (None, ""):
+			frappe.throw(_("Cavity Count is required."))
+		if flt(self.cavity_count) <= 0:
+			frappe.throw(_("Cavity Count must be greater than zero."))
+
+	def _validate_product_rules(self):
+		validate_mold_product_configuration(
+			cavity_count=self.cavity_count,
+			is_family_mold=bool(self.is_family_mold),
+			mold_products=self.get("mold_products") or [],
+		)
 
 	def _validate_lifecycle_fields(self):
 		if self.is_new() or self.docstatus != 1:
@@ -98,3 +118,78 @@ def get_mold_name_prefix(posting_date=None) -> str:
 def make_mold_name(posting_date=None) -> str:
 	prefix = get_mold_name_prefix(posting_date)
 	return f"{prefix}{getseries(prefix, 3)}"
+
+
+def normalize_mold_product_rows(
+	mold_products,
+	*,
+	is_family_mold: bool,
+	cavity_count,
+):
+	rows = mold_products or []
+	cavity_count_value = flt(cavity_count)
+
+	for row in rows:
+		if _get_row_value(row, "cavity_output_qty") in (None, ""):
+			_set_row_value(row, "cavity_output_qty", 1)
+
+	if not is_family_mold and len(rows) == 1 and cavity_count_value > 0:
+		_set_row_value(rows[0], "output_qty", cavity_count_value)
+
+	return rows
+
+
+def validate_mold_product_configuration(
+	*,
+	cavity_count,
+	is_family_mold: bool,
+	mold_products,
+	throw=None,
+):
+	throw = throw or frappe.throw
+	rows = mold_products or []
+
+	if cavity_count in (None, ""):
+		throw(_("Cavity Count is required."))
+
+	cavity_count_value = flt(cavity_count)
+	if cavity_count_value <= 0:
+		throw(_("Cavity Count must be greater than zero."))
+
+	if is_family_mold:
+		if len(rows) < 2:
+			throw(_("Family Mold requires at least two Mold Product rows."))
+
+		total_output = 0.0
+		for row in rows:
+			output_qty = flt(_get_row_value(row, "output_qty"))
+			cavity_output_qty = flt(_get_row_value(row, "cavity_output_qty"))
+			if output_qty <= 0:
+				throw(_("Output Qty is required for each Mold Product row when Family Mold is enabled."))
+			if cavity_output_qty <= 0:
+				throw(_("Cavity Output Qty must be greater than zero."))
+			total_output += output_qty
+
+		if not isclose(total_output, cavity_count_value, rel_tol=0, abs_tol=1e-9):
+			throw(_("Sum of Output Qty must equal Cavity Count for Family Mold."))
+		return
+
+	if len(rows) != 1:
+		throw(_("Non-family molds require exactly one Mold Product row."))
+
+	cavity_output_qty = flt(_get_row_value(rows[0], "cavity_output_qty"))
+	if cavity_output_qty <= 0:
+		throw(_("Cavity Output Qty must be greater than zero."))
+
+
+def _get_row_value(row, fieldname: str):
+	if hasattr(row, "get"):
+		return row.get(fieldname)
+	return getattr(row, fieldname, None)
+
+
+def _set_row_value(row, fieldname: str, value):
+	if isinstance(row, dict):
+		row[fieldname] = value
+	else:
+		setattr(row, fieldname, value)
