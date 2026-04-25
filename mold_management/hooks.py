@@ -149,6 +149,7 @@ before_uninstall = "mold_management.uninstall.before_uninstall"
 
 doc_events = {
 	"Asset": {
+		"on_submit": "mold_management.services.lifecycle.handle_asset_change",
 		"on_change": "mold_management.services.lifecycle.handle_asset_change",
 		"on_update_after_submit": "mold_management.services.lifecycle.handle_asset_change",
 	},

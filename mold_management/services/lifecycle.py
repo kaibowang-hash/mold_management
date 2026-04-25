@@ -53,12 +53,11 @@ def handle_asset_maintenance_log_change(doc, method=None):
 
 def sync_mold_lifecycle(mold_name: str):
 	mold = frappe.get_doc("Mold", mold_name)
-	asset_name = mold.linked_asset or frappe.db.get_value("Asset", {"custom_mold_management_mold": mold_name}, "name")
-	asset = frappe.get_doc("Asset", asset_name) if asset_name else None
+	linked_asset_name, asset = _get_linked_asset_state(mold_name, mold.linked_asset)
 
 	values = {
 		"status": _get_mold_status(mold_name, asset),
-		"linked_asset": asset.name if asset else None,
+		"linked_asset": linked_asset_name,
 		"current_version": _get_current_version(mold),
 		"current_location": asset.location if asset else None,
 		"current_warehouse": _get_current_warehouse(asset.name if asset else None) if asset else None,
@@ -82,8 +81,8 @@ def sync_mold_lifecycle(mold_name: str):
 		current_storage_bin=values.get("current_storage_bin"),
 	)
 
-	if asset and not mold.linked_asset:
-		values["linked_asset"] = asset.name
+	if linked_asset_name and not mold.linked_asset:
+		values["linked_asset"] = linked_asset_name
 
 	cleaned_values = sanitize_lifecycle_values(values)
 	frappe.db.set_value("Mold", mold_name, cleaned_values, update_modified=False)
@@ -98,6 +97,32 @@ def _get_mold_name_from_asset(asset_or_name) -> str | None:
 		return getattr(asset_or_name, "custom_mold_management_mold", None)
 
 	return frappe.db.get_value("Asset", asset_or_name, "custom_mold_management_mold")
+
+
+def _get_linked_asset_state(mold_name: str, linked_asset_name: str | None) -> tuple[str | None, object | None]:
+	asset_name = linked_asset_name or _find_asset_name_for_mold(mold_name)
+	if not asset_name:
+		return None, None
+
+	asset = frappe.get_doc("Asset", asset_name)
+	return asset_name, asset if _is_submitted_asset(asset) else None
+
+
+def _find_asset_name_for_mold(mold_name: str) -> str | None:
+	return frappe.db.get_value(
+		"Asset",
+		{"custom_mold_management_mold": mold_name},
+		"name",
+		order_by="creation desc",
+	)
+
+
+def _is_submitted_asset(asset_or_name) -> bool:
+	if not asset_or_name:
+		return False
+	if hasattr(asset_or_name, "docstatus"):
+		return int(getattr(asset_or_name, "docstatus", 0) or 0) == 1
+	return frappe.db.get_value("Asset", asset_or_name, "docstatus") == 1
 
 
 def _get_mold_status(mold_name: str, asset) -> str:
