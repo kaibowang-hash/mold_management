@@ -168,6 +168,12 @@ doc_events = {
 		"on_submit": "mold_management.services.lifecycle.handle_asset_maintenance_log_change",
 		"on_cancel": "mold_management.services.lifecycle.handle_asset_maintenance_log_change",
 	},
+	"Mold Repair": {
+		"after_insert": "mold_management.services.lifecycle.handle_mold_repair_change",
+		"on_update": "mold_management.services.lifecycle.handle_mold_repair_change",
+		"on_submit": "mold_management.services.lifecycle.handle_mold_repair_change",
+		"on_cancel": "mold_management.services.lifecycle.handle_mold_repair_change",
+	},
 }
 
 # Scheduled Tasks

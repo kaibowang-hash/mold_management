@@ -6,6 +6,7 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "status",
   "mold",
   "linked_asset",
   "company",
@@ -20,11 +21,31 @@
   "mcr_reference",
   "section_break_2",
   "reason",
+  "problem_description",
+  "section_execution",
+  "assigned_to",
+  "work_started_on",
+  "work_completed_on",
+  "column_break_3",
+  "actions_performed",
+  "section_acceptance",
+  "accepted_by",
+  "accepted_on",
+  "acceptance_notes",
   "summary",
   "attachment",
   "amended_from"
  ],
  "fields": [
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nPending Work\nIn Progress\nReady for Acceptance\nRework Required\nAccepted\nCancelled",
+   "read_only": 1
+  },
   {
    "fieldname": "mold",
    "fieldtype": "Link",
@@ -111,6 +132,68 @@
    "reqd": 1
   },
   {
+   "fieldname": "problem_description",
+   "fieldtype": "Long Text",
+   "label": "Problem Description"
+  },
+  {
+   "fieldname": "section_execution",
+   "fieldtype": "Section Break",
+   "label": "Execution"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "label": "Assigned To",
+   "options": "User"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "work_started_on",
+   "fieldtype": "Datetime",
+   "label": "Work Started On"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "work_completed_on",
+   "fieldtype": "Datetime",
+   "label": "Work Completed On"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actions_performed",
+   "fieldtype": "Long Text",
+   "label": "Actions Performed"
+  },
+  {
+   "fieldname": "section_acceptance",
+   "fieldtype": "Section Break",
+   "label": "Acceptance"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "accepted_by",
+   "fieldtype": "Link",
+   "label": "Accepted By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "accepted_on",
+   "fieldtype": "Datetime",
+   "label": "Accepted On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "acceptance_notes",
+   "fieldtype": "Long Text",
+   "label": "Acceptance Notes"
+  },
+  {
    "fieldname": "summary",
    "fieldtype": "Text Editor",
    "label": "Summary"
@@ -159,9 +242,30 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Manufacturing Manager",
+   "role": "Mold Manager",
    "share": 1,
    "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Keeper",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Technician",
+   "share": 1,
    "write": 1
   }
  ],

@@ -6,9 +6,13 @@
   "item_code",
   "item_name",
   "item_group",
+  "food_grade",
+  "output_group",
+  "configuration_label",
   "column_break_1",
   "priority",
   "is_default_product",
+  "color_spec",
   "section_break_1",
   "output_qty",
   "cavity_output_qty",
@@ -40,6 +44,26 @@
    "label": "Item Group"
   },
   {
+   "fetch_from": "item_code.custom_food_grade",
+   "fieldname": "food_grade",
+   "fieldtype": "Read Only",
+   "hidden": 1,
+   "label": "Food Grade"
+  },
+  {
+   "default": "Default",
+   "fieldname": "output_group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Output Group"
+  },
+  {
+   "fieldname": "configuration_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Configuration"
+  },
+  {
    "fieldname": "column_break_1",
    "fieldtype": "Column Break"
   },
@@ -56,6 +80,12 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Default Product"
+  },
+  {
+   "fieldname": "color_spec",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Color / Spec"
   },
   {
    "fieldname": "section_break_1",

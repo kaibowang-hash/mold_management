@@ -1,0 +1,77 @@
+{
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "condition_sheet",
+  "item_code",
+  "version",
+  "column_break_1",
+  "status",
+  "current_effective",
+  "cycle_time_seconds",
+  "configuration_label"
+ ],
+ "fields": [
+  {
+   "fieldname": "condition_sheet",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Condition Sheet",
+   "options": "Injection Molding Condition Sheet",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "version",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_effective",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Current Effective",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cycle_time_seconds",
+   "fieldtype": "Float",
+   "label": "Cycle Time (Seconds)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "configuration_label",
+   "fieldtype": "Data",
+   "label": "Configuration",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold Condition Reference",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC"
+}

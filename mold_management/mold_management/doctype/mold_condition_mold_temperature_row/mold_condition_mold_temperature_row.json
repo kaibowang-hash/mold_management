@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "zone",
+  "oil_temperature_set_c",
+  "actual_temperature_c",
+  "cooling_circuit_count",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "zone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Zone"
+  },
+  {
+   "fieldname": "oil_temperature_set_c",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Oil Temperature Set C"
+  },
+  {
+   "fieldname": "actual_temperature_c",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Actual Temperature C"
+  },
+  {
+   "fieldname": "cooling_circuit_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Cooling Circuit Count"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold Condition Mold Temperature Row",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

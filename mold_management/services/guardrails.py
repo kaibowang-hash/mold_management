@@ -12,6 +12,10 @@ from mold_management.constants import (
 	MOLD_STATUS_SCRAPPED,
 	MOLD_STATUS_UNDER_EXTERNAL_MAINTENANCE,
 	MOLD_STATUS_UNDER_MAINTENANCE,
+	MOLD_WORKFLOW_STATUS_IN_PROGRESS,
+	MOLD_WORKFLOW_STATUS_PENDING_WORK,
+	MOLD_WORKFLOW_STATUS_READY_FOR_ACCEPTANCE,
+	MOLD_WORKFLOW_STATUS_REWORK_REQUIRED,
 )
 
 RESOLUTION_CREATE_RECEIPT = "create_receipt_to_default"
@@ -335,6 +339,21 @@ def _get_open_issue_context(asset_name: str) -> dict | None:
 
 
 def _get_open_internal_work(asset_name: str):
+	mold_name = frappe.db.get_value("Asset", asset_name, "custom_mold_management_mold") if asset_name else None
+	if mold_name and frappe.db.exists("DocType", "Mold Repair"):
+		mold_repair = frappe.db.get_value(
+			"Mold Repair",
+			{
+				"mold": mold_name,
+				"docstatus": ("<", 2),
+				"status": ("in", _open_mold_work_statuses()),
+			},
+			"name",
+			order_by="modified desc",
+		)
+		if mold_repair:
+			return {"doctype": "Mold Repair", "name": mold_repair}
+
 	repair = frappe.db.get_value(
 		"Asset Repair",
 		{"asset": asset_name, "repair_status": "Pending", "docstatus": 1},
@@ -362,3 +381,12 @@ def _get_open_internal_work(asset_name: str):
 		return {"doctype": "Asset Maintenance Log", "name": rows[0].name}
 
 	return None
+
+
+def _open_mold_work_statuses() -> tuple[str, ...]:
+	return (
+		MOLD_WORKFLOW_STATUS_PENDING_WORK,
+		MOLD_WORKFLOW_STATUS_IN_PROGRESS,
+		MOLD_WORKFLOW_STATUS_READY_FOR_ACCEPTANCE,
+		MOLD_WORKFLOW_STATUS_REWORK_REQUIRED,
+	)

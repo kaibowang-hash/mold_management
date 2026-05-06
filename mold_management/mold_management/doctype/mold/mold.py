@@ -16,6 +16,8 @@ from mold_management.services.lifecycle import sync_mold_lifecycle
 from mold_management.services.versioning import normalize_version
 
 APS_ALLOWED_ITEM_GROUPS = ("Plastic Part", "Sub-assemblies")
+DEFAULT_OUTPUT_GROUP = "Default"
+FOOD_GRADE_EMPTY_VALUES = {"", "NA", "N/A"}
 
 
 class Mold(Document):
@@ -25,6 +27,7 @@ class Mold(Document):
 	def validate(self):
 		self._set_defaults()
 		self._normalize_product_rows()
+		self._sync_food_grade_snapshots()
 		self._validate_ownership()
 		self._validate_cavity_count()
 		self._validate_product_rules()
@@ -60,6 +63,26 @@ class Mold(Document):
 			is_family_mold=bool(self.is_family_mold),
 			cavity_count=self.cavity_count,
 		)
+
+	def _sync_food_grade_snapshots(self):
+		rows = self.get("mold_products") or []
+		item_codes = sorted({row.item_code for row in rows if row.item_code})
+		if not item_codes or not frappe.db.exists("DocType", "Item"):
+			return
+		if not frappe.get_meta("Item").has_field("custom_food_grade"):
+			return
+
+		food_grade_by_item = dict(
+			frappe.get_all(
+				"Item",
+				filters={"name": ["in", item_codes]},
+				fields=["name", "custom_food_grade"],
+				as_list=True,
+			)
+		)
+		for row in rows:
+			if row.item_code:
+				row.food_grade = food_grade_by_item.get(row.item_code) or ""
 
 	def _validate_cavity_count(self):
 		if self.cavity_count in (None, ""):
@@ -174,9 +197,13 @@ def normalize_mold_product_rows(
 	for row in rows:
 		if _get_row_value(row, "cavity_output_qty") in (None, ""):
 			_set_row_value(row, "cavity_output_qty", 1)
+		if not (_get_row_value(row, "output_group") or "").strip():
+			_set_row_value(row, "output_group", DEFAULT_OUTPUT_GROUP)
 
-	if not is_family_mold and len(rows) == 1 and cavity_count_value > 0:
-		_set_row_value(rows[0], "output_qty", cavity_count_value)
+	if not is_family_mold and cavity_count_value > 0:
+		for row in rows:
+			if _get_row_value(row, "output_qty") in (None, ""):
+				_set_row_value(row, "output_qty", cavity_count_value)
 
 	return rows
 
@@ -199,29 +226,64 @@ def validate_mold_product_configuration(
 		throw(_("Cavity Count must be greater than zero."))
 
 	if is_family_mold:
-		if len(rows) < 2:
+		grouped_rows = _group_mold_product_rows(rows)
+		if not grouped_rows:
 			throw(_("Family Mold requires at least two Mold Product rows."))
 
-		total_output = 0.0
-		for row in rows:
-			output_qty = flt(_get_row_value(row, "output_qty"))
-			cavity_output_qty = flt(_get_row_value(row, "cavity_output_qty"))
-			if output_qty <= 0:
-				throw(_("Output Qty is required for each Mold Product row when Family Mold is enabled."))
-			if cavity_output_qty <= 0:
-				throw(_("Cavity Output Qty must be greater than zero."))
-			total_output += output_qty
+		for output_group, group_rows in grouped_rows.items():
+			if len(group_rows) < 2:
+				throw(_("Family Mold output group {0} requires at least two Mold Product rows.").format(output_group))
 
-		if not isclose(total_output, cavity_count_value, rel_tol=0, abs_tol=1e-9):
-			throw(_("Sum of Output Qty must equal Cavity Count for Family Mold."))
+			total_output = 0.0
+			for row in group_rows:
+				output_qty = flt(_get_row_value(row, "output_qty"))
+				cavity_output_qty = flt(_get_row_value(row, "cavity_output_qty"))
+				if output_qty <= 0:
+					throw(_("Output Qty is required for each Mold Product row when Family Mold is enabled."))
+				if cavity_output_qty <= 0:
+					throw(_("Cavity Output Qty must be greater than zero."))
+				total_output += output_qty
+
+			if not isclose(total_output, cavity_count_value, rel_tol=0, abs_tol=1e-9):
+				throw(_("Sum of Output Qty must equal Cavity Count for Family Mold output group {0}.").format(output_group))
 		return
 
-	if len(rows) != 1:
-		throw(_("Non-family molds require exactly one Mold Product row."))
+	if not rows:
+		throw(_("Mold requires at least one Mold Product row."))
 
-	cavity_output_qty = flt(_get_row_value(rows[0], "cavity_output_qty"))
-	if cavity_output_qty <= 0:
-		throw(_("Cavity Output Qty must be greater than zero."))
+	for row in rows:
+		cavity_output_qty = flt(_get_row_value(row, "cavity_output_qty"))
+		if cavity_output_qty <= 0:
+			throw(_("Cavity Output Qty must be greater than zero."))
+
+
+def get_food_grade_warning_rows(mold_products) -> list[dict]:
+	rows = []
+	for row in mold_products or []:
+		food_grade = _get_row_value(row, "food_grade")
+		if not is_food_grade_warning_value(food_grade):
+			continue
+		rows.append(
+			{
+				"item_code": _get_row_value(row, "item_code"),
+				"item_name": _get_row_value(row, "item_name"),
+				"food_grade": food_grade,
+				"output_group": _get_row_value(row, "output_group") or DEFAULT_OUTPUT_GROUP,
+			}
+		)
+	return rows
+
+
+def is_food_grade_warning_value(value) -> bool:
+	return (str(value or "").strip().upper() not in FOOD_GRADE_EMPTY_VALUES)
+
+
+def _group_mold_product_rows(rows) -> dict[str, list]:
+	grouped_rows = {}
+	for row in rows or []:
+		output_group = (_get_row_value(row, "output_group") or DEFAULT_OUTPUT_GROUP).strip() or DEFAULT_OUTPUT_GROUP
+		grouped_rows.setdefault(output_group, []).append(row)
+	return grouped_rows
 
 
 def _get_row_value(row, fieldname: str):

@@ -51,13 +51,31 @@
   },
   {
    "label": "Transactions",
-   "link_count": 4,
+   "link_count": 7,
    "link_type": "DocType",
    "type": "Card Break"
   },
   {
    "label": "Mold Alteration",
    "link_to": "Mold Alteration",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "label": "Mold Repair",
+   "link_to": "Mold Repair",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "label": "Mold Trial Report",
+   "link_to": "Mold Trial Report",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "label": "Injection Molding Condition Sheet",
+   "link_to": "Injection Molding Condition Sheet",
    "link_type": "DocType",
    "type": "Link"
   },

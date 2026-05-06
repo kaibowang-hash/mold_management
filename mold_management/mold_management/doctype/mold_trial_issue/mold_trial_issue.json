@@ -1,0 +1,58 @@
+{
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "issue_description",
+  "severity",
+  "column_break_1",
+  "corrective_action",
+  "owner",
+  "result"
+ ],
+ "fields": [
+  {
+   "fieldname": "issue_description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Issue Description",
+   "reqd": 1
+  },
+  {
+   "default": "Medium",
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Severity",
+   "options": "Low\nMedium\nHigh\nCritical"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "corrective_action",
+   "fieldtype": "Small Text",
+   "label": "Corrective Action"
+  },
+  {
+   "fieldname": "owner",
+   "fieldtype": "Link",
+   "label": "Owner",
+   "options": "User"
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Select",
+   "label": "Result",
+   "options": "\nOpen\nClosed\nMonitor"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold Trial Issue",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC"
+}
