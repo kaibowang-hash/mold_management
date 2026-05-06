@@ -47,6 +47,9 @@
   "tab_material_information",
   "materials_section",
   "default_materials",
+  "tab_molding_conditions",
+  "molding_conditions_section",
+  "molding_condition_links",
   "tab_lifecycle_information",
   "section_asset",
   "linked_asset",
@@ -405,6 +408,24 @@
    "options": "Mold Default Material"
   },
   {
+   "fieldname": "tab_molding_conditions",
+   "fieldtype": "Tab Break",
+   "label": "Molding Conditions"
+  },
+  {
+   "fieldname": "molding_conditions_section",
+   "fieldtype": "Section Break",
+   "label": "Injection Molding Condition Sheets"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "molding_condition_links",
+   "fieldtype": "Table",
+   "label": "Molding Condition Sheets",
+   "options": "Mold Condition Reference",
+   "read_only": 1
+  },
+  {
    "fieldname": "tab_lifecycle_information",
    "fieldtype": "Tab Break",
    "label": "Asset & Lifecycle"
@@ -540,6 +561,40 @@
    "share": 1,
    "submit": 1,
    "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Keeper",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Technician",
+   "share": 1
   }
  ],
  "sort_field": "modified",

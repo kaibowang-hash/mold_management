@@ -1,0 +1,49 @@
+{
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "zone",
+  "setpoint_c",
+  "actual_min_c",
+  "actual_max_c",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "zone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Zone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "setpoint_c",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Setpoint C"
+  },
+  {
+   "fieldname": "actual_min_c",
+   "fieldtype": "Float",
+   "label": "Actual Min C"
+  },
+  {
+   "fieldname": "actual_max_c",
+   "fieldtype": "Float",
+   "label": "Actual Max C"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold Condition Temperature Row",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC"
+}

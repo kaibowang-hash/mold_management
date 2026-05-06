@@ -1,0 +1,328 @@
+{% macro val(value) -%}
+{{ value if value not in [None, ""] else "" }}
+{%- endmacro %}
+
+{% macro cell(label_cn, label_en, value) -%}
+<td class="pf-label">{{ label_cn }}<br><span>{{ label_en }}</span></td>
+<td class="pf-value">{{ val(value) }}</td>
+{%- endmacro %}
+
+{% macro action_table(title_cn, title_en, rows, defaults, include_time=True) -%}
+<table class="pf-table pf-compact">
+	<tr><th colspan="{{ 5 if include_time else 4 }}">{{ title_cn }} / {{ title_en }}</th></tr>
+	<tr>
+		<th>项目<br>Item</th>
+		<th>压力<br>Pressure</th>
+		<th>速度<br>Speed</th>
+		<th>位置mm<br>Position mm</th>
+		{% if include_time %}<th>时间S<br>Time s</th>{% endif %}
+	</tr>
+	{% if rows %}
+		{% for row in rows %}
+		<tr>
+			<td>{{ val(row.action_name) }}</td>
+			<td>{{ val(row.pressure) }}</td>
+			<td>{{ val(row.speed) }}</td>
+			<td>{{ val(row.position_mm) }}</td>
+			{% if include_time %}<td>{{ val(row.time_s) }}</td>{% endif %}
+		</tr>
+		{% endfor %}
+	{% else %}
+		{% for label in defaults %}
+		<tr>
+			<td>{{ label }}</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			{% if include_time %}<td></td>{% endif %}
+		</tr>
+		{% endfor %}
+	{% endif %}
+</table>
+{%- endmacro %}
+
+<style>
+	.print-format {
+		padding: 0 !important;
+		font-size: 9px;
+		color: #111;
+	}
+	.imcs-sheet {
+		font-family: Arial, "Microsoft YaHei", sans-serif;
+	}
+	.imcs-title {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		align-items: end;
+		margin-bottom: 5px;
+	}
+	.imcs-title h1 {
+		margin: 0;
+		font-size: 22px;
+		letter-spacing: 8px;
+		text-align: center;
+		font-weight: 800;
+	}
+	.imcs-title .en {
+		display: block;
+		font-size: 10px;
+		letter-spacing: 1px;
+		margin-top: 2px;
+	}
+	.imcs-no {
+		text-align: right;
+		font-size: 14px;
+		font-weight: 700;
+	}
+	.pf-table {
+		width: 100%;
+		border-collapse: collapse;
+		table-layout: fixed;
+	}
+	.pf-table th,
+	.pf-table td {
+		border: 1px solid #111;
+		padding: 3px 4px;
+		vertical-align: middle;
+		height: 20px;
+	}
+	.pf-table th {
+		text-align: center;
+		font-weight: 700;
+		background: #f7f7f7;
+	}
+	.pf-label {
+		width: 11%;
+		font-weight: 700;
+		text-align: center;
+		background: #fbfbfb;
+	}
+	.pf-label span,
+	.pf-table th span {
+		font-size: 7px;
+		font-weight: 400;
+	}
+	.pf-value {
+		width: 14%;
+		min-height: 20px;
+	}
+	.pf-grid-3 {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		gap: 0;
+	}
+	.pf-grid-2 {
+		display: grid;
+		grid-template-columns: 1.1fr 0.9fr;
+		gap: 0;
+	}
+	.pf-grid-3 > table,
+	.pf-grid-2 > table {
+		margin-top: -1px;
+	}
+	.pf-compact th,
+	.pf-compact td {
+		height: 17px;
+		padding: 2px 3px;
+	}
+	.pf-section-title {
+		border: 1px solid #111;
+		border-top: 0;
+		text-align: center;
+		font-weight: 700;
+		background: #f7f7f7;
+		padding: 3px;
+	}
+	.pf-note {
+		min-height: 68px;
+		white-space: pre-wrap;
+	}
+	.pf-sign td {
+		height: 26px;
+	}
+	.pf-checkbox {
+		display: inline-block;
+		width: 9px;
+		height: 9px;
+		border: 1px solid #111;
+		margin: 0 3px -1px 6px;
+		text-align: center;
+		line-height: 8px;
+		font-size: 8px;
+	}
+</style>
+
+{% set opening_defaults = ["开模1 / Open 1", "开模2 / Open 2", "开模3 / Open 3", "开模4 / Open 4", "开模5 / Open 5"] %}
+{% set closing_defaults = ["锁模1 / Close 1", "锁模2 / Close 2", "锁模3 / Close 3", "锁模4 / Close 4", "锁模5 / Close 5"] %}
+{% set ejector_defaults = ["顶针1 / Ejector 1", "顶针2 / Ejector 2", "退针1 / Return 1", "退针2 / Return 2"] %}
+{% set injection_defaults = ["射胶1 / Injection 1", "射胶2 / Injection 2", "射胶3 / Injection 3", "射胶4 / Injection 4", "射胶5 / Injection 5", "保压1 / Holding 1", "保压2 / Holding 2", "保压3 / Holding 3", "熔胶 / Plasticizing", "射退 / Suck Back"] %}
+{% set core_defaults = ["中子1进 / Core 1 In", "中子1退 / Core 1 Out", "中子2进 / Core 2 In", "中子2退 / Core 2 Out", "中子3进 / Core 3 In", "中子3退 / Core 3 Out", "中子4进 / Core 4 In", "中子4退 / Core 4 Out", "中子5进 / Core 5 In", "中子5退 / Core 5 Out"] %}
+
+<div class="imcs-sheet">
+	<div class="imcs-title">
+		<div></div>
+		<h1>注塑成型工艺表<span class="en">Injection Molding Process Sheet</span></h1>
+		<div class="imcs-no">No. {{ doc.name }}</div>
+	</div>
+
+	<table class="pf-table">
+		<tr>
+			{{ cell("产品名称", "Product Name", doc.item_name) }}
+			{{ cell("产品材质", "Material", doc.material_name or doc.material_item) }}
+			{{ cell("机台型号", "Machine", doc.machine or doc.workstation) }}
+			{{ cell("产品净重", "Net Weight", doc.product_weight_g) }}
+		</tr>
+		<tr>
+			{{ cell("产品编号", "Product Code", doc.item_code) }}
+			{{ cell("产品颜色", "Color / Code", doc.color_spec or doc.configuration_label) }}
+			{{ cell("穴数", "Cavities", doc.cavity_count) }}
+			{{ cell("水口重量", "Sprue Weight", doc.sprue_weight_g) }}
+		</tr>
+		<tr>
+			{{ cell("模具编号", "Mold No.", doc.mold) }}
+			{{ cell("色粉比例", "Color Ratio", doc.color_ratio_percent) }}
+			{{ cell("周期", "Cycle", doc.cycle_time_seconds) }}
+			{{ cell("使用水口比例", "Sprue Ratio", doc.sprue_ratio_percent) }}
+		</tr>
+	</table>
+
+	<div class="pf-section-title">开锁模参数 / Mold Open and Close Parameters</div>
+	<div class="pf-grid-3">
+		{{ action_table("开模参数", "Opening", doc.opening_rows, opening_defaults, False) }}
+		{{ action_table("锁模参数", "Closing", doc.closing_rows, closing_defaults, False) }}
+		{{ action_table("顶针参数", "Ejector", doc.ejector_rows, ejector_defaults, False) }}
+	</div>
+
+	<div class="pf-section-title">注塑工艺参数 / Injection Process Parameters</div>
+	<div class="pf-grid-2">
+		{{ action_table("射胶/保压参数", "Injection / Holding", doc.injection_rows, injection_defaults, True) }}
+		<div>
+			{{ action_table("中子参数", "Core Pull", doc.core_rows, core_defaults, True) }}
+			<table class="pf-table pf-compact">
+				<tr><th colspan="2">其他部分 / Other</th></tr>
+				<tr><td>射胶时间 / Injection Time</td><td>{{ val(doc.injection_time_sec) }} sec</td></tr>
+				<tr><td>冷却时间 / Cooling Time</td><td>{{ val(doc.cooling_time_sec) }} sec</td></tr>
+				<tr><td>转保压 / Transfer Position</td><td>{{ val(doc.transfer_position_mm) }} mm</td></tr>
+				<tr><td>注塑终点 / Injection End Point</td><td>{{ val(doc.injection_end_point) }}</td></tr>
+				<tr><td colspan="2"><div class="pf-note">中子顺序情况说明 / Core Sequence Notes:<br>{{ val(doc.core_sequence_notes) }}</div></td></tr>
+			</table>
+		</div>
+	</div>
+
+	<div class="pf-section-title">温控部分参数（℃） / Temperature Control Parameters (C)</div>
+	<table class="pf-table pf-compact">
+		<tr>
+			<th>区域 / Zone</th>
+			<th>设定 / Set</th>
+			<th>实测下限 / Actual Min</th>
+			<th>实测上限 / Actual Max</th>
+			<th>备注 / Notes</th>
+		</tr>
+		{% if doc.temperature_rows %}
+			{% for row in doc.temperature_rows %}
+			<tr>
+				<td>{{ val(row.zone) }}</td>
+				<td>{{ val(row.setpoint_c) }}</td>
+				<td>{{ val(row.actual_min_c) }}</td>
+				<td>{{ val(row.actual_max_c) }}</td>
+				<td>{{ val(row.notes) }}</td>
+			</tr>
+			{% endfor %}
+		{% else %}
+			{% for label in ["射咀 T1 / Nozzle T1", "射咀 T2 / Nozzle T2", "射咀 T3 / Nozzle T3", "射咀 T4 / Nozzle T4", "射咀 T5 / Nozzle T5", "热流道 T1 / Hot Runner T1", "热流道 T2 / Hot Runner T2", "热流道 T3 / Hot Runner T3", "热流道 T4 / Hot Runner T4", "热流道 T5 / Hot Runner T5", "热流道 T6 / Hot Runner T6", "热流道 T7 / Hot Runner T7", "热流道 T8 / Hot Runner T8"] %}
+			<tr><td>{{ label }}</td><td></td><td></td><td></td><td></td></tr>
+			{% endfor %}
+		{% endif %}
+	</table>
+
+	<div class="pf-grid-2">
+		<table class="pf-table pf-compact">
+			<tr><th colspan="4">烘料 / Drying</th></tr>
+			<tr>
+				<th>项目 / Item</th>
+				<th>温度 / Temp</th>
+				<th>时间H / Time H</th>
+				<th>水分 / Moisture</th>
+			</tr>
+			<tr>
+				<td>热风机 / Hot Air</td>
+				<td>{{ val(doc.drying_temperature_c) }}</td>
+				<td>{{ val(doc.drying_time_hours) }}</td>
+				<td>{{ val(doc.moisture_limit) }}</td>
+			</tr>
+			<tr>
+				<td>除湿干燥机 / Dehumidifier</td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>回料比例 / Regrind</td>
+				<td colspan="3">{{ val(doc.regrind_ratio_percent) }}</td>
+			</tr>
+		</table>
+		<table class="pf-table pf-compact">
+			<tr><th colspan="4">模具 / Mold Temperature</th></tr>
+			<tr>
+				<th>部位 / Position</th>
+				<th>油温设定 / Oil Set</th>
+				<th>实际温度 / Actual</th>
+				<th>冷却组数 / Cooling</th>
+			</tr>
+			{% if doc.mold_temperature_rows %}
+				{% for row in doc.mold_temperature_rows %}
+				<tr>
+					<td>{{ val(row.zone) }}</td>
+					<td>{{ val(row.oil_temperature_set_c) }}</td>
+					<td>{{ val(row.actual_temperature_c) }}</td>
+					<td>{{ val(row.cooling_circuit_count) }}</td>
+				</tr>
+				{% endfor %}
+			{% else %}
+				{% for label in ["前模 / Cavity Side", "后模 / Core Side", "滑块 / Slide", "单独芯子 / Separate Core"] %}
+				<tr><td>{{ label }}</td><td></td><td></td><td></td></tr>
+				{% endfor %}
+			{% endif %}
+		</table>
+	</div>
+
+	<table class="pf-table pf-compact">
+		<tr>
+			<th colspan="6">工艺调节范围 / Process Adjustment Range</th>
+		</tr>
+		<tr>
+			<td>压力 / Pressure ± {{ val(doc.pressure_tolerance) }}</td>
+			<td>速度 / Speed ± {{ val(doc.speed_tolerance) }}</td>
+			<td>位置 / Position ± {{ val(doc.position_tolerance) }}</td>
+			<td>时间 / Time ± {{ val(doc.time_tolerance) }}</td>
+			<td>熔胶温度 / Melt Temp ± {{ val(doc.melt_temperature_tolerance) }}</td>
+			<td>模具温度 / Mold Temp ± {{ val(doc.mold_temperature_tolerance) }}</td>
+		</tr>
+	</table>
+
+	<table class="pf-table pf-compact">
+		<tr><th colspan="4">模具使用安全部分 / Mold Safety</th></tr>
+		<tr>
+			<td>顶针板是否有安全开关 / Ejector safety switch <span class="pf-checkbox">{{ "✓" if doc.ejector_safety_switch else "" }}</span>是 Yes <span class="pf-checkbox">{{ "" if doc.ejector_safety_switch else "✓" }}</span>否 No</td>
+			<td>滑块是否有安全开关 / Slide safety switch <span class="pf-checkbox">{{ "✓" if doc.slide_safety_switch else "" }}</span>是 Yes <span class="pf-checkbox">{{ "" if doc.slide_safety_switch else "✓" }}</span>否 No</td>
+			<td>是否使用 / Use mold safety <span class="pf-checkbox">{{ "✓" if doc.use_mold_safety else "" }}</span>是 Yes <span class="pf-checkbox">{{ "" if doc.use_mold_safety else "✓" }}</span>否 No</td>
+			<td>模具吊环是否适合安全 / Lift ring safe <span class="pf-checkbox">{{ "✓" if doc.mold_lift_safe else "" }}</span>是 Yes <span class="pf-checkbox">{{ "" if doc.mold_lift_safe else "✓" }}</span>否 No</td>
+		</tr>
+	</table>
+
+	<table class="pf-table">
+		<tr>
+			<td class="pf-label">特别注意事项<br><span>Special Notes</span></td>
+			<td><div class="pf-note">{{ val(doc.critical_notes) }}</div></td>
+		</tr>
+	</table>
+
+	<table class="pf-table pf-sign">
+		<tr>
+			{{ cell("编制", "Prepared By", doc.prepared_by) }}
+			{{ cell("审核", "Checked By", doc.checked_by) }}
+			{{ cell("批准", "Approved By", doc.approved_by) }}
+			{{ cell("版本", "Version", doc.version) }}
+		</tr>
+	</table>
+</div>

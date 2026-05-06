@@ -20,11 +20,37 @@ def ensure_single_defaults():
 	ensure_workspace_resources()
 
 
+def backfill_mold_product_metadata():
+	if frappe.db.has_column("Mold Product", "output_group"):
+		frappe.db.sql(
+			"""
+			update `tabMold Product`
+			set output_group = 'Default'
+			where ifnull(output_group, '') = ''
+			"""
+		)
+	if (
+		frappe.db.has_column("Mold Product", "food_grade")
+		and frappe.db.exists("DocType", "Item")
+		and frappe.get_meta("Item").has_field("custom_food_grade")
+	):
+		frappe.db.sql(
+			"""
+			update `tabMold Product` mp
+			join `tabItem` item on item.name = mp.item_code
+			set mp.food_grade = ifnull(item.custom_food_grade, '')
+			"""
+		)
+
+
 def ensure_safe_to_uninstall():
 	blockers = []
 	for doctype in (
 		"Mold",
 		"Mold Alteration",
+		"Mold Repair",
+		"Mold Trial Report",
+		"Injection Molding Condition Sheet",
 		"Mold Outsource",
 		"Mold Spare Part",
 		"Mold Spare Part Usage",

@@ -14,6 +14,13 @@ from mold_management.constants import (
 	MOLD_STATUS_UNDER_EXTERNAL_MAINTENANCE,
 	MOLD_STATUS_UNDER_MAINTENANCE,
 	LIFECYCLE_DATETIME_FIELDS,
+	MOLD_WORKFLOW_STATUS_ACCEPTED,
+	MOLD_WORKFLOW_STATUS_CANCELLED,
+	MOLD_WORKFLOW_STATUS_DRAFT,
+	MOLD_WORKFLOW_STATUS_IN_PROGRESS,
+	MOLD_WORKFLOW_STATUS_PENDING_WORK,
+	MOLD_WORKFLOW_STATUS_READY_FOR_ACCEPTANCE,
+	MOLD_WORKFLOW_STATUS_REWORK_REQUIRED,
 	OUTSOURCE_TYPE_EXTERNAL_MAINTENANCE,
 )
 from mold_management.services.storage import sync_mold_storage_location
@@ -42,6 +49,11 @@ def handle_asset_repair_change(doc, method=None):
 	mold_name = _get_mold_name_from_asset(doc.asset)
 	if mold_name:
 		sync_mold_lifecycle(mold_name)
+
+
+def handle_mold_repair_change(doc, method=None):
+	if doc.mold:
+		sync_mold_lifecycle(doc.mold)
 
 
 def handle_asset_maintenance_log_change(doc, method=None):
@@ -138,6 +150,9 @@ def _get_mold_status(mold_name: str, asset) -> str:
 	if _has_open_outsource(mold_name):
 		return MOLD_STATUS_OUTSOURCED
 
+	if _has_open_mold_repair(mold_name):
+		return MOLD_STATUS_UNDER_MAINTENANCE
+
 	if asset and _has_pending_repair(asset.name):
 		return MOLD_STATUS_UNDER_MAINTENANCE
 
@@ -162,6 +177,21 @@ def _has_pending_repair(asset_name: str) -> bool:
 		frappe.db.exists(
 			"Asset Repair",
 			{"asset": asset_name, "repair_status": "Pending", "docstatus": 1},
+		)
+	)
+
+
+def _has_open_mold_repair(mold_name: str) -> bool:
+	if not frappe.db.exists("DocType", "Mold Repair"):
+		return False
+	return bool(
+		frappe.db.exists(
+			"Mold Repair",
+			{
+				"mold": mold_name,
+				"docstatus": ("<", 2),
+				"status": ("in", _open_mold_work_statuses()),
+			},
 		)
 	)
 
@@ -239,6 +269,13 @@ def _get_current_transaction_fields(mold_name: str, asset_name: str | None) -> d
 		}
 
 	open_repair = _get_open_repair_doc(asset_name) if asset_name else None
+	open_mold_repair = _get_open_mold_repair_doc(mold_name)
+	if open_mold_repair:
+		return {
+			"current_transaction_type": "Mold Repair",
+			"current_transaction_ref": open_mold_repair.name,
+		}
+
 	if open_repair:
 		return {
 			"current_transaction_type": "Asset Repair",
@@ -282,7 +319,7 @@ def _get_recent_activity_dates(mold_name: str, asset_name: str | None) -> dict:
 			fields["last_issue_on"] = event["time"]
 		elif event["doctype"] == "Asset Movement" and event["kind"] == "Receipt" and not fields["last_receipt_on"]:
 			fields["last_receipt_on"] = event["time"]
-		elif event["doctype"] == "Asset Repair" and not fields["last_repair_on"]:
+		elif event["doctype"] in {"Asset Repair", "Mold Repair"} and not fields["last_repair_on"]:
 			fields["last_repair_on"] = event["time"]
 		elif event["doctype"] == "Asset Maintenance Log" and not fields["last_maintenance_on"]:
 			fields["last_maintenance_on"] = event["time"]
@@ -346,6 +383,22 @@ def _collect_lifecycle_events(mold_name: str, asset_name: str | None) -> list[di
 					"name": row.name,
 					"time": row.event_time,
 					"kind": row.maintenance_status,
+				}
+			)
+
+	if frappe.db.exists("DocType", "Mold Repair"):
+		for repair in frappe.get_all(
+			"Mold Repair",
+			fields=["name", "modified", "status"],
+			filters={"mold": mold_name, "docstatus": ("<", 2), "status": ("!=", MOLD_WORKFLOW_STATUS_CANCELLED)},
+			order_by="modified desc",
+		):
+			events.append(
+				{
+					"doctype": "Mold Repair",
+					"name": repair.name,
+					"time": repair.modified,
+					"kind": repair.status,
 				}
 			)
 
@@ -447,6 +500,23 @@ def _get_open_repair_doc(asset_name: str | None):
 	return frappe.get_doc("Asset Repair", name) if name else None
 
 
+def _get_open_mold_repair_doc(mold_name: str | None):
+	if not mold_name or not frappe.db.exists("DocType", "Mold Repair"):
+		return None
+
+	name = frappe.db.get_value(
+		"Mold Repair",
+		{
+			"mold": mold_name,
+			"docstatus": ("<", 2),
+			"status": ("in", _open_mold_work_statuses()),
+		},
+		"name",
+		order_by="modified desc",
+	)
+	return frappe.get_doc("Mold Repair", name) if name else None
+
+
 def _get_open_maintenance_doc(asset_name: str | None):
 	if not asset_name:
 		return None
@@ -540,6 +610,15 @@ def sanitize_lifecycle_values(values: dict) -> dict:
 			continue
 		cleaned[key] = value
 	return cleaned
+
+
+def _open_mold_work_statuses() -> tuple[str, ...]:
+	return (
+		MOLD_WORKFLOW_STATUS_PENDING_WORK,
+		MOLD_WORKFLOW_STATUS_IN_PROGRESS,
+		MOLD_WORKFLOW_STATUS_READY_FOR_ACCEPTANCE,
+		MOLD_WORKFLOW_STATUS_REWORK_REQUIRED,
+	)
 
 
 @lru_cache(maxsize=8)

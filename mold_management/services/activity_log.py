@@ -14,6 +14,7 @@ def get_mold_activity_rows(mold_name: str) -> list[dict]:
 		rows.extend(_get_asset_maintenance_rows(asset))
 		rows.extend(_get_asset_scrap_rows(asset))
 
+	rows.extend(_get_mold_repair_rows(mold_name))
 	rows.extend(_get_mold_alteration_rows(mold_name))
 	rows.extend(_get_mold_outsource_rows(mold_name))
 	rows.extend(_get_spare_part_usage_rows(mold_name))
@@ -80,6 +81,28 @@ def _get_asset_repair_rows(asset_name: str) -> list[dict]:
 		order by modified desc
 		""",
 		{"asset": asset_name},
+		as_dict=True,
+	)
+
+
+def _get_mold_repair_rows(mold_name: str) -> list[dict]:
+	if not frappe.db.exists("DocType", "Mold Repair"):
+		return []
+
+	return frappe.db.sql(
+		"""
+		select
+			'Mold Repair' as reference_doctype,
+			name,
+			modified as posting_time,
+			status as activity_type,
+			problem_description as detail,
+			docstatus
+		from `tabMold Repair`
+		where mold = %(mold)s and docstatus < 2
+		order by modified desc
+		""",
+		{"mold": mold_name},
 		as_dict=True,
 	)
 

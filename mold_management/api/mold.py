@@ -28,6 +28,12 @@ from mold_management.services.guardrails import (
 	return_open_outsource_for_mold,
 )
 from mold_management.services.lifecycle import sync_mold_lifecycle
+from mold_management.services.molding_conditions import (
+	create_condition_sheet_from_trial_report as make_condition_sheet_from_trial_report,
+	create_next_condition_version,
+	get_active_molding_conditions_for_item as build_active_molding_conditions_for_item,
+	get_molding_conditions_for_mold as build_molding_conditions_for_mold,
+)
 from mold_management.services.spare_parts import get_mold_spare_part_rows, make_spare_part_usage
 
 
@@ -129,6 +135,30 @@ def create_asset_repair_from_mold(mold_name: str, values: str | dict | None = No
 			"repair_status": values.get("repair_status") or "Pending",
 			"description": values.get("description"),
 			"actions_performed": values.get("actions_performed"),
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	sync_mold_lifecycle(mold.name)
+	return {"doctype": doc.doctype, "name": doc.name}
+
+
+@frappe.whitelist()
+def create_mold_repair_from_mold(mold_name: str, values: str | dict | None = None) -> dict:
+	assert_action_allowed(mold_name, "Repair")
+	mold = frappe.get_doc("Mold", mold_name)
+	if not mold.linked_asset:
+		frappe.throw(_("Create or link an Asset first."))
+	values = _coerce_values(values)
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Mold Repair",
+			"mold": mold.name,
+			"failure_date": values.get("failure_date") or now_datetime(),
+			"problem_description": values.get("problem_description") or values.get("description"),
+			"priority": values.get("priority") or "Medium",
+			"assigned_to": values.get("assigned_to"),
+			"attachment": values.get("attachment"),
 		}
 	)
 	doc.insert(ignore_permissions=True)
@@ -260,6 +290,47 @@ def get_item_molds(item_code: str) -> list[dict]:
 			}
 		)
 	return rows
+
+
+@frappe.whitelist()
+def get_active_molding_conditions_for_item(item_code: str) -> list[dict]:
+	return build_active_molding_conditions_for_item(item_code)
+
+
+@frappe.whitelist()
+def get_molding_conditions_for_mold(mold: str) -> list[dict]:
+	return build_molding_conditions_for_mold(mold)
+
+
+@frappe.whitelist()
+def create_next_injection_molding_condition_version(condition_sheet: str, update_reason: str) -> str:
+	return create_next_condition_version(condition_sheet, update_reason)
+
+
+@frappe.whitelist()
+def create_condition_sheet_from_trial_report(trial_report: str) -> dict:
+	return make_condition_sheet_from_trial_report(trial_report)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_mold_product_item_query(doctype, txt, searchfield, start, page_len, filters):
+	mold = (filters or {}).get("mold")
+	if not mold:
+		return []
+	return frappe.db.sql(
+		"""
+		select distinct item.name, item.item_name
+		from `tabMold Product` mp
+		join `tabItem` item on item.name = mp.item_code
+		where mp.parent = %(mold)s
+			and mp.parenttype = 'Mold'
+			and (item.name like %(txt)s or item.item_name like %(txt)s)
+		order by mp.is_default_product desc, mp.priority asc, item.name asc
+		limit %(start)s, %(page_len)s
+		""",
+		{"mold": mold, "txt": f"%{txt}%", "start": start, "page_len": page_len},
+	)
 
 
 @frappe.whitelist()
@@ -411,6 +482,9 @@ def get_print_context(doctype: str, docname: str) -> dict:
 			"receipt": settings.receipt_print_format,
 		}.get(operation)
 	elif doctype == "Asset Repair" and _is_mold_related_asset(doc.asset):
+		operation = "repair"
+		print_format = settings.repair_print_format
+	elif doctype == "Mold Repair":
 		operation = "repair"
 		print_format = settings.repair_print_format
 	elif doctype == "Asset Maintenance Log" and _is_mold_related_maintenance_log(doc):

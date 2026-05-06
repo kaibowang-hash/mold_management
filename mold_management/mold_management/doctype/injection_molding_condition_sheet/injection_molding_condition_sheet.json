@@ -1,0 +1,649 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "format:IMCS-{YYYY}-{#####}",
+ "default_print_format": "Injection Molding Condition Sheet A4",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "current_effective",
+  "version",
+  "item_code",
+  "item_name",
+  "mold",
+  "mold_name",
+  "company",
+  "column_break_identity",
+  "output_group",
+  "configuration_label",
+  "color_spec",
+  "product_weight_g",
+  "sprue_weight_g",
+  "sprue_ratio_percent",
+  "effective_from",
+  "effective_by",
+  "tab_process",
+  "section_machine",
+  "workstation",
+  "machine",
+  "machine_tonnage",
+  "cavity_count",
+  "cycle_time_seconds",
+  "output_qty",
+  "cavity_output_qty",
+  "section_material",
+  "material_item",
+  "material_name",
+  "material_grade",
+  "material_lot",
+  "resin_source",
+  "color_masterbatch",
+  "color_ratio_percent",
+  "column_break_material",
+  "drying_temperature_c",
+  "drying_time_hours",
+  "moisture_limit",
+  "regrind_ratio_percent",
+  "tab_parameters",
+  "section_motion_parameters",
+  "opening_rows",
+  "closing_rows",
+  "ejector_rows",
+  "section_injection_core",
+  "injection_rows",
+  "core_rows",
+  "section_other_process",
+  "injection_time_sec",
+  "cooling_time_sec",
+  "transfer_position_mm",
+  "injection_end_point",
+  "core_sequence_notes",
+  "section_temperature_parameters",
+  "temperature_rows",
+  "mold_temperature_rows",
+  "section_tolerance_safety",
+  "pressure_tolerance",
+  "speed_tolerance",
+  "position_tolerance",
+  "time_tolerance",
+  "melt_temperature_tolerance",
+  "mold_temperature_tolerance",
+  "ejector_safety_switch",
+  "slide_safety_switch",
+  "use_mold_safety",
+  "mold_lift_safe",
+  "column_break_approval",
+  "prepared_by",
+  "checked_by",
+  "approved_by",
+  "process_rows",
+  "tab_quality",
+  "quality_window",
+  "appearance_standard",
+  "dimension_standard",
+  "critical_notes",
+  "tab_links",
+  "tpr_reference",
+  "trial_report",
+  "attachment",
+  "tab_version_update",
+  "update_source",
+  "update_reason",
+  "updated_from_version",
+  "updated_to_version",
+  "version_logs",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nApproved\nObsolete\nCancelled",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "current_effective",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Current Effective",
+   "read_only": 1
+  },
+  {
+   "default": "A0",
+   "fieldname": "version",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Read Only",
+   "label": "Item Name"
+  },
+  {
+   "fieldname": "mold",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Mold",
+   "options": "Mold",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "mold.mold_name",
+   "fieldname": "mold_name",
+   "fieldtype": "Read Only",
+   "label": "Mold Name"
+  },
+  {
+   "fetch_from": "mold.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Default",
+   "fieldname": "output_group",
+   "fieldtype": "Data",
+   "label": "Output Group"
+  },
+  {
+   "fieldname": "configuration_label",
+   "fieldtype": "Data",
+   "label": "Configuration"
+  },
+  {
+   "fieldname": "color_spec",
+   "fieldtype": "Data",
+   "label": "Color / Spec"
+  },
+  {
+   "fieldname": "product_weight_g",
+   "fieldtype": "Float",
+   "label": "Product Weight (g)"
+  },
+  {
+   "fieldname": "sprue_weight_g",
+   "fieldtype": "Float",
+   "label": "Sprue Weight (g)"
+  },
+  {
+   "fieldname": "sprue_ratio_percent",
+   "fieldtype": "Percent",
+   "label": "Sprue Ratio %"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "effective_from",
+   "fieldtype": "Datetime",
+   "label": "Effective From",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "effective_by",
+   "fieldtype": "Link",
+   "label": "Effective By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tab_process",
+   "fieldtype": "Tab Break",
+   "label": "Process"
+  },
+  {
+   "fieldname": "section_machine",
+   "fieldtype": "Section Break",
+   "label": "Machine and Output"
+  },
+  {
+   "fieldname": "workstation",
+   "fieldtype": "Link",
+   "label": "Workstation",
+   "options": "Workstation"
+  },
+  {
+   "fieldname": "machine",
+   "fieldtype": "Data",
+   "label": "Machine"
+  },
+  {
+   "fieldname": "machine_tonnage",
+   "fieldtype": "Float",
+   "label": "Machine Tonnage"
+  },
+  {
+   "fieldname": "cavity_count",
+   "fieldtype": "Float",
+   "label": "Cavity Count"
+  },
+  {
+   "fieldname": "cycle_time_seconds",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Cycle Time (Seconds)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "output_qty",
+   "fieldtype": "Float",
+   "label": "Output Qty"
+  },
+  {
+   "fieldname": "cavity_output_qty",
+   "fieldtype": "Float",
+   "label": "Cavity Output Qty"
+  },
+  {
+   "fieldname": "section_material",
+   "fieldtype": "Section Break",
+   "label": "Material"
+  },
+  {
+   "fieldname": "material_item",
+   "fieldtype": "Link",
+   "label": "Material Item",
+   "options": "Item"
+  },
+  {
+   "fetch_from": "material_item.item_name",
+   "fieldname": "material_name",
+   "fieldtype": "Read Only",
+   "label": "Material Name"
+  },
+  {
+   "fieldname": "material_grade",
+   "fieldtype": "Data",
+   "label": "Material Grade"
+  },
+  {
+   "fieldname": "material_lot",
+   "fieldtype": "Data",
+   "label": "Material Lot"
+  },
+  {
+   "fieldname": "resin_source",
+   "fieldtype": "Select",
+   "label": "Resin Source",
+   "options": "\nCustomer-Provided\nIn-house Material"
+  },
+  {
+   "fieldname": "color_masterbatch",
+   "fieldtype": "Data",
+   "label": "Color Masterbatch"
+  },
+  {
+   "fieldname": "color_ratio_percent",
+   "fieldtype": "Percent",
+   "label": "Color Ratio %"
+  },
+  {
+   "fieldname": "column_break_material",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "drying_temperature_c",
+   "fieldtype": "Float",
+   "label": "Drying Temperature C"
+  },
+  {
+   "fieldname": "drying_time_hours",
+   "fieldtype": "Float",
+   "label": "Drying Time Hours"
+  },
+  {
+   "fieldname": "moisture_limit",
+   "fieldtype": "Data",
+   "label": "Moisture Limit"
+  },
+  {
+   "fieldname": "regrind_ratio_percent",
+   "fieldtype": "Percent",
+   "label": "Regrind Ratio %"
+  },
+  {
+   "fieldname": "tab_parameters",
+   "fieldtype": "Tab Break",
+   "label": "Parameters"
+  },
+  {
+   "fieldname": "section_motion_parameters",
+   "fieldtype": "Section Break",
+   "label": "Mold Motion Parameters"
+  },
+  {
+   "fieldname": "opening_rows",
+   "fieldtype": "Table",
+   "label": "Opening Parameters",
+   "options": "Mold Condition Action Row"
+  },
+  {
+   "fieldname": "closing_rows",
+   "fieldtype": "Table",
+   "label": "Closing Parameters",
+   "options": "Mold Condition Action Row"
+  },
+  {
+   "fieldname": "ejector_rows",
+   "fieldtype": "Table",
+   "label": "Ejector Parameters",
+   "options": "Mold Condition Action Row"
+  },
+  {
+   "fieldname": "section_injection_core",
+   "fieldtype": "Section Break",
+   "label": "Injection and Core Parameters"
+  },
+  {
+   "fieldname": "injection_rows",
+   "fieldtype": "Table",
+   "label": "Injection Parameters",
+   "options": "Mold Condition Action Row"
+  },
+  {
+   "fieldname": "core_rows",
+   "fieldtype": "Table",
+   "label": "Core Pull Parameters",
+   "options": "Mold Condition Action Row"
+  },
+  {
+   "fieldname": "section_other_process",
+   "fieldtype": "Section Break",
+   "label": "Other Process Parameters"
+  },
+  {
+   "fieldname": "injection_time_sec",
+   "fieldtype": "Float",
+   "label": "Injection Time (sec)"
+  },
+  {
+   "fieldname": "cooling_time_sec",
+   "fieldtype": "Float",
+   "label": "Cooling Time (sec)"
+  },
+  {
+   "fieldname": "transfer_position_mm",
+   "fieldtype": "Float",
+   "label": "Transfer Position (mm)"
+  },
+  {
+   "fieldname": "injection_end_point",
+   "fieldtype": "Data",
+   "label": "Injection End Point"
+  },
+  {
+   "fieldname": "core_sequence_notes",
+   "fieldtype": "Long Text",
+   "label": "Core Sequence Notes"
+  },
+  {
+   "fieldname": "section_temperature_parameters",
+   "fieldtype": "Section Break",
+   "label": "Temperature Parameters"
+  },
+  {
+   "fieldname": "temperature_rows",
+   "fieldtype": "Table",
+   "label": "Temperature Rows",
+   "options": "Mold Condition Temperature Row"
+  },
+  {
+   "fieldname": "mold_temperature_rows",
+   "fieldtype": "Table",
+   "label": "Mold Temperature Rows",
+   "options": "Mold Condition Mold Temperature Row"
+  },
+  {
+   "fieldname": "section_tolerance_safety",
+   "fieldtype": "Section Break",
+   "label": "Process Tolerances and Safety"
+  },
+  {
+   "default": "10",
+   "fieldname": "pressure_tolerance",
+   "fieldtype": "Float",
+   "label": "Pressure Tolerance"
+  },
+  {
+   "default": "10",
+   "fieldname": "speed_tolerance",
+   "fieldtype": "Float",
+   "label": "Speed Tolerance"
+  },
+  {
+   "default": "10",
+   "fieldname": "position_tolerance",
+   "fieldtype": "Float",
+   "label": "Position Tolerance"
+  },
+  {
+   "default": "5",
+   "fieldname": "time_tolerance",
+   "fieldtype": "Float",
+   "label": "Time Tolerance"
+  },
+  {
+   "default": "10",
+   "fieldname": "melt_temperature_tolerance",
+   "fieldtype": "Float",
+   "label": "Melt Temperature Tolerance"
+  },
+  {
+   "default": "10",
+   "fieldname": "mold_temperature_tolerance",
+   "fieldtype": "Float",
+   "label": "Mold Temperature Tolerance"
+  },
+  {
+   "fieldname": "ejector_safety_switch",
+   "fieldtype": "Check",
+   "label": "Ejector Plate Safety Switch"
+  },
+  {
+   "fieldname": "slide_safety_switch",
+   "fieldtype": "Check",
+   "label": "Slide Safety Switch"
+  },
+  {
+   "fieldname": "use_mold_safety",
+   "fieldtype": "Check",
+   "label": "Use Mold Safety"
+  },
+  {
+   "fieldname": "mold_lift_safe",
+   "fieldtype": "Check",
+   "label": "Mold Lift Ring Safety"
+  },
+  {
+   "fieldname": "column_break_approval",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prepared_by",
+   "fieldtype": "Link",
+   "label": "Condition Prepared By",
+   "options": "User"
+  },
+  {
+   "fieldname": "checked_by",
+   "fieldtype": "Link",
+   "label": "Condition Checked By",
+   "options": "User"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Condition Approved By",
+   "options": "User"
+  },
+  {
+   "fieldname": "process_rows",
+   "fieldtype": "Table",
+   "label": "Additional Process Rows",
+   "options": "Mold Condition Process Row"
+  },
+  {
+   "fieldname": "tab_quality",
+   "fieldtype": "Tab Break",
+   "label": "Quality Window"
+  },
+  {
+   "fieldname": "quality_window",
+   "fieldtype": "Text Editor",
+   "label": "Quality Window"
+  },
+  {
+   "fieldname": "appearance_standard",
+   "fieldtype": "Small Text",
+   "label": "Appearance Standard"
+  },
+  {
+   "fieldname": "dimension_standard",
+   "fieldtype": "Small Text",
+   "label": "Dimension Standard"
+  },
+  {
+   "fieldname": "critical_notes",
+   "fieldtype": "Long Text",
+   "label": "Critical Notes"
+  },
+  {
+   "fieldname": "tab_links",
+   "fieldtype": "Tab Break",
+   "label": "Links"
+  },
+  {
+   "fieldname": "tpr_reference",
+   "fieldtype": "Link",
+   "label": "TPR Reference",
+   "options": "TPR - Trial Production Request"
+  },
+  {
+   "fieldname": "trial_report",
+   "fieldtype": "Link",
+   "label": "Trial Report",
+   "options": "Mold Trial Report"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment"
+  },
+  {
+   "fieldname": "tab_version_update",
+   "fieldtype": "Tab Break",
+   "label": "Version Update"
+  },
+  {
+   "fieldname": "update_source",
+   "fieldtype": "Link",
+   "label": "Update Source",
+   "options": "Injection Molding Condition Sheet",
+   "read_only": 1
+  },
+  {
+   "fieldname": "update_reason",
+   "fieldtype": "Small Text",
+   "label": "Update Reason"
+  },
+  {
+   "fieldname": "updated_from_version",
+   "fieldtype": "Data",
+   "label": "Updated From Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "updated_to_version",
+   "fieldtype": "Data",
+   "label": "Updated To Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "version_logs",
+   "fieldtype": "Table",
+   "label": "Version Logs",
+   "options": "Mold Condition Version Log"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Injection Molding Condition Sheet",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Injection Molding Condition Sheet",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Keeper",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

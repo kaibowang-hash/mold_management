@@ -1,0 +1,240 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "format:MRPR-{YYYY}-{#####}",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "mold",
+  "linked_asset",
+  "company",
+  "column_break_1",
+  "failure_date",
+  "requested_by",
+  "section_issue",
+  "problem_description",
+  "priority",
+  "attachment",
+  "section_execution",
+  "assigned_to",
+  "work_started_on",
+  "work_completed_on",
+  "column_break_2",
+  "actions_performed",
+  "spare_parts_note",
+  "section_acceptance",
+  "accepted_by",
+  "accepted_on",
+  "acceptance_notes",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nPending Work\nIn Progress\nReady for Acceptance\nRework Required\nAccepted\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mold",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Mold",
+   "options": "Mold",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "mold.linked_asset",
+   "fieldname": "linked_asset",
+   "fieldtype": "Link",
+   "label": "Linked Asset",
+   "options": "Asset",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "mold.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "failure_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Failure Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "requested_by",
+   "fieldtype": "Link",
+   "label": "Requested By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_issue",
+   "fieldtype": "Section Break",
+   "label": "Issue"
+  },
+  {
+   "fieldname": "problem_description",
+   "fieldtype": "Long Text",
+   "in_list_view": 1,
+   "label": "Problem Description",
+   "reqd": 1
+  },
+  {
+   "default": "Medium",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "Low\nMedium\nHigh\nUrgent"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment"
+  },
+  {
+   "fieldname": "section_execution",
+   "fieldtype": "Section Break",
+   "label": "Execution"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "label": "Assigned To",
+   "options": "User"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "work_started_on",
+   "fieldtype": "Datetime",
+   "label": "Work Started On"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "work_completed_on",
+   "fieldtype": "Datetime",
+   "label": "Work Completed On"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actions_performed",
+   "fieldtype": "Long Text",
+   "label": "Actions Performed"
+  },
+  {
+   "fieldname": "spare_parts_note",
+   "fieldtype": "Small Text",
+   "label": "Spare Parts Note"
+  },
+  {
+   "fieldname": "section_acceptance",
+   "fieldtype": "Section Break",
+   "label": "Acceptance"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "accepted_by",
+   "fieldtype": "Link",
+   "label": "Accepted By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "accepted_on",
+   "fieldtype": "Datetime",
+   "label": "Accepted On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "acceptance_notes",
+   "fieldtype": "Long Text",
+   "label": "Acceptance Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Mold Repair",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "module": "Mold Management",
+ "name": "Mold Repair",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Keeper",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Mold Technician",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

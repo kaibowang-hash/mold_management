@@ -52,5 +52,44 @@ frappe.ui.form.on("Item", {
 				},
 			});
 		}, __("View"));
+
+		frm.add_custom_button(__("View Molding Conditions"), function () {
+			frappe.call({
+				method: "mold_management.api.mold.get_active_molding_conditions_for_item",
+				args: { item_code: frm.doc.name },
+				callback: function (r) {
+					const rows = r.message || [];
+					mold_management.ui.show_table_dialog({
+						title: __("Current Molding Conditions for {0}", [frm.doc.name]),
+						columns: [
+							{ label: __("Mold"), fieldname: "mold" },
+							{ label: __("Condition Sheet"), fieldname: "name" },
+							{ label: __("Version"), fieldname: "version" },
+							{ label: __("Configuration"), fieldname: "configuration_label" },
+							{ label: __("Cycle (s)"), fieldname: "cycle_time_seconds" },
+						],
+						rows,
+						row_renderer(row, index) {
+							const rowClass = index === 0 ? "mm-row-current" : "";
+							return `
+								<tr class="${rowClass}">
+									<td>
+										${mold_management.ui.doc_link("Mold", row.mold)}
+										<div class="mm-muted">${frappe.utils.escape_html(row.mold_name || "")}</div>
+									</td>
+									<td>${mold_management.ui.doc_link("Injection Molding Condition Sheet", row.name)}</td>
+									<td>${frappe.utils.escape_html(row.version || "")}</td>
+									<td>
+										<div>${frappe.utils.escape_html(row.configuration_label || row.output_group || "-")}</div>
+										<div class="mm-muted">${frappe.utils.escape_html(row.color_spec || "")}</div>
+									</td>
+									<td>${frappe.utils.escape_html(row.cycle_time_seconds || "")}</td>
+								</tr>
+							`;
+						},
+					});
+				},
+			});
+		}, __("View"));
 	},
 });
